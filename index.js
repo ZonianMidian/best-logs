@@ -205,7 +205,7 @@ app.get("/api/:channel/:user", async (req, res) => {
     const { force, full, pretty, plain } = req.query;
     const instances = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty, full);
     if (plain?.toLowerCase() === 'true') {
-        return res.send(instances?.userLogs?.fullLink[0]);
+        return res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
     } else {
         return res.send(instances);
     }

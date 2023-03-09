@@ -46,7 +46,7 @@
 <script>
     function redirect() {
         window.location.href =
-            `/rdr/${document.getElementById("channelInput").value}/${document.getElementById("userInput").value}`
+            `/rdr/${document.getElementById("channelInput").value.trim()}/${document.getElementById("userInput").value.trim()}`
     }
 </script>
 
