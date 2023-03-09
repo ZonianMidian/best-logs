@@ -24,20 +24,21 @@ async function getInstance(channel, user, force, pretty, full, error) {
 
     const start = performance.now();
     if (!error) for (const Website of instances) {
-        const { Status, Link, Full } = await getLogs(Website, user, channel, force, pretty);
+        const { Status, Link, Full, channelFull } = await getLogs(Website, user, channel, force, pretty);
         switch (Status) {
             case 0:
                 downSites++;
                 continue;
             case 1:
+                channelLinks.push(channelFull)
                 channelInstances.push(Link)
                 userInstances.push(Link)
                 userLinks.push(Full)
                 if (full) { continue; }
                 break;
             case 2:
+                channelLinks.push(channelFull)
                 channelInstances.push(Link)
-                channelLinks.push(Full)
                 continue;
             case 3:
                 continue;
@@ -47,8 +48,8 @@ async function getInstance(channel, user, force, pretty, full, error) {
 
     if(force) await utils.redis.set(`logs:updated`, Math.round((new Date()).getTime() / 1000))
 
-    if(!error && userInstances.length === 0 && channelInstances.length === 0) error = "No logs found"
-    if(!error && userInstances.length === 0 && channelInstances.length > 0) error = "No user logs found"
+    if(!error && userInstances.length === 0 && channelInstances.length === 0) error = "No channel logs found"
+    if(!error & user && userInstances.length === 0 && channelInstances.length > 0) error = "No user logs found"
     const end = performance.now();
 
     return {
@@ -93,7 +94,8 @@ async function getLogs(url, user, channel, force, pretty) {
     let logsInfo = {
         Status: Number,
         Link: String ?? null,
-        Full: String ?? null
+        Full: String ?? null,
+        channelFull: String ?? null
     }
 
     let Channels
@@ -116,15 +118,22 @@ async function getLogs(url, user, channel, force, pretty) {
         }
     }
 
-    if (Channels.includes(channel.replace('id:', ''))) {
+    const channelPath = channel.match(/^id:(\d{1,})$/i) ? 'channelid' : 'channel'
+    const channelClean = channel.replace('id:', '')
+
+    if (!user && Channels.includes(channelClean)) {
+        logsInfo.Status = 2
+        logsInfo.Link = `https://${url}`
+        logsInfo.channelFull = (pretty) ? 
+            `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` : `https://${url}/?channel=${channel}`;
+        return logsInfo;
+
+    } else if (Channels.includes(channelClean)) {
         const cacheData = await utils.redis.get(`logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`)
         let Code
 
         const userPath = user.match(/^id:(\d{1,})$/i) ? 'userid' : 'user'
-        const channelPath = channel.match(/^id:(\d{1,})$/i) ? 'channelid' : 'channel'
-
         const userClean = user.replace('id:', '')
-        const channelClean = channel.replace('id:', '')
 
         if (cacheData && !force) {
             Code = JSON.parse(cacheData)
@@ -138,7 +147,7 @@ async function getLogs(url, user, channel, force, pretty) {
         if (Code < 200 || Code > 299) {
             logsInfo.Status = 2
             logsInfo.Link = `https://${url}`
-            logsInfo.Full = (pretty) ? 
+            logsInfo.channelFull = (pretty) ? 
                 `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` 
                 : `https://${url}/?channel=${channel}`;
         }
@@ -148,6 +157,9 @@ async function getLogs(url, user, channel, force, pretty) {
             logsInfo.Full = (pretty) ? 
                 `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}` 
                 : `https://${url}/?channel=${channel}&username=${user}`;
+            logsInfo.channelFull = (pretty) ? 
+                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` 
+                : `https://${url}/?channel=${channel}`;
         }
 
         return logsInfo;
@@ -191,6 +203,25 @@ app.get("/contact", async (req, res) => {
     res.render("contact", userInfo);
 });
 
+app.get("/rdr/:channel", async (req, res) => {
+    const { channel } = req.params;
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: "Invalid channel or channel ID", code: "" });
+
+    const { force, pretty } = req.query;
+
+    try {
+        const instance = await getInstance(utils.formatUsername(channel), null, force, pretty);
+        if (instance.error) {
+            return res.render("error", { error: instance.error, code: "" });
+        } else {
+            return res.redirect(instance?.channelLogs?.fullLink[0]);
+        }
+    } catch (err) {
+        return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}`: ''}`, code: "" });
+    }
+    
+});
+
 app.get("/rdr/:channel/:user", async (req, res) => {
     const { channel, user } = req.params;
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) return res.render("error", { error: "Invalid username or user ID", code: "" });
@@ -209,6 +240,28 @@ app.get("/rdr/:channel/:user", async (req, res) => {
         return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}`: ''}`, code: "" });
     }
     
+});
+
+app.get("/api/:channel", async (req, res) => {
+    const { force, full, pretty, plain } = req.query;
+    const { channel } = req.params;
+    let error = null;
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) error = "Invalid channel or channel ID";
+
+    try {
+        const instances = await getInstance(utils.formatUsername(channel), null, force, pretty, full, error);
+        if (plain?.toLowerCase() === 'true') {
+            return res.send(instances?.channelLogs?.fullLink[0] ?? instances?.error);
+        } else {
+            return res.send(instances);
+        }
+    } catch (err) {
+        if (plain?.toLowerCase() === 'true') {
+            return res.send(`Internal error${err.message ? ` - ${err.message}`: ''}`);
+        } else {
+            return res.send({ error: `Internal error${err.message ? ` - ${err.message}`: ''}` });
+        }
+    }
 });
 
 app.get("/api/:channel/:user", async (req, res) => {
