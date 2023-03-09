@@ -197,11 +197,16 @@ app.get("/rdr/:channel/:user", async (req, res) => {
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: "Invalid channel or channel ID", code: "" });
 
     const { force, pretty } = req.query;
-    const instance = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty);
-    if (instance.error) {
-        return res.render("error", { error: instance.error, code: "" });
-    } else {
-        return res.redirect(instance?.userLogs?.fullLink[0]);
+
+    try {
+        const instance = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty);
+        if (instance.error) {
+            return res.render("error", { error: instance.error, code: "" });
+        } else {
+            return res.redirect(instance?.userLogs?.fullLink[0]);
+        }
+    } catch (err) {
+        return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}`: ''}`, code: "" });
     }
     
 });
@@ -213,11 +218,19 @@ app.get("/api/:channel/:user", async (req, res) => {
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) error = "Invalid username or user ID";
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) error = "Invalid channel or channel ID";
 
-    const instances = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty, full, error);
-    if (plain?.toLowerCase() === 'true') {
-        return res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
-    } else {
-        return res.send(instances);
+    try {
+        const instances = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty, full, error);
+        if (plain?.toLowerCase() === 'true') {
+            return res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
+        } else {
+            return res.send(instances);
+        }
+    } catch (err) {
+        if (plain?.toLowerCase() === 'true') {
+            return res.send(`Internal error${err.message ? ` - ${err.message}`: ''}`);
+        } else {
+            return res.send({ error: `Internal error${err.message ? ` - ${err.message}`: ''}` });
+        }
     }
 });
 
