@@ -8,13 +8,12 @@ app.use("/static", express.static(`${__dirname}/static`));
 app.set("views", `${__dirname}/views`);
 app.set("view engine", "ejs");
 
-async function getInstance(channel, user, force, pretty, full) {
+async function getInstance(channel, user, force, pretty, full, error) {
     const instances = (require("./data.json")).instances;
     pretty = (pretty?.toLowerCase() === 'true')
     force = (force?.toLowerCase() === 'true')
     full = (full?.toLowerCase() === 'true')
 
-    let error = null;
     let downSites = 0;
     let fullLinks = []
     let userInstances = []
@@ -23,7 +22,7 @@ async function getInstance(channel, user, force, pretty, full) {
     if(Number(await utils.redis.get(`logs:updated`)) - Math.round((new Date()).getTime() / 1000) > 86400) force = true
 
     const start = performance.now();
-    for (const Website of instances) {
+    if (!error) for (const Website of instances) {
         const { Status, Link, Full } = await getLogs(Website, user, channel, force, pretty);
         switch (Status) {
             case 0:
@@ -46,8 +45,8 @@ async function getInstance(channel, user, force, pretty, full) {
 
     if(force) await utils.redis.set(`logs:updated`, Math.round((new Date()).getTime() / 1000))
 
-    if(userInstances.length === 0 && channelInstances.length === 0) error = "No logs found"
-    if(userInstances.length === 0 && channelInstances.length > 0) error = "No user logs found"
+    if(!error && userInstances.length === 0 && channelInstances.length === 0) error = "No logs found"
+    if(!error && userInstances.length === 0 && channelInstances.length > 0) error = "No user logs found"
     const end = performance.now();
 
     return {
@@ -198,12 +197,13 @@ app.get("/rdr/:channel/:user", async (req, res) => {
 });
 
 app.get("/api/:channel/:user", async (req, res) => {
-    const { channel, user } = req.params;
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) res.send({ error: "Invalid username" });
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$/i).exec(channel)) res.send({ error: "Invalid channel" });
-
     const { force, full, pretty, plain } = req.query;
-    const instances = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty, full);
+    const { channel, user } = req.params;
+    let error = null;
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) error = "Invalid username";
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$/i).exec(channel)) error = "Invalid channel";
+
+    const instances = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty, full, error);
     if (plain?.toLowerCase() === 'true') {
         return res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
     } else {
