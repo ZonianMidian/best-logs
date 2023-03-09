@@ -15,7 +15,8 @@ async function getInstance(channel, user, force, pretty, full, error) {
     full = (full?.toLowerCase() === 'true')
 
     let downSites = 0;
-    let fullLinks = []
+    let userLinks = []
+    let channelLinks = []
     let userInstances = []
     let channelInstances = []
 
@@ -31,11 +32,12 @@ async function getInstance(channel, user, force, pretty, full, error) {
             case 1:
                 channelInstances.push(Link)
                 userInstances.push(Link)
-                fullLinks.push(Full)
+                userLinks.push(Full)
                 if (full) { continue; }
                 break;
             case 2:
                 channelInstances.push(Link)
+                channelLinks.push(Full)
                 continue;
             case 3:
                 continue;
@@ -68,11 +70,12 @@ async function getInstance(channel, user, force, pretty, full, error) {
         userLogs: {
             count: userInstances.length,
             instances: userInstances,
-            fullLink: fullLinks
+            fullLink: userLinks
         },
         channelLogs: {
             count: channelInstances.length,
-            instances: channelInstances
+            instances: channelInstances,
+            fullLink: channelLinks
         },
         lastUpdated: {
             unix: Number(await utils.redis.get(`logs:updated`)),
@@ -131,6 +134,9 @@ async function getLogs(url, user, channel, force, pretty) {
         if (Code < 200 || Code > 299) {
             logsInfo.Status = 2
             logsInfo.Link = `https://${url}`
+            logsInfo.Full = (pretty) ? 
+                `https://logs.raccatta.cc/${url}/channel/${channel}` 
+                : `https://${url}/?channel=${channel}`;
         }
         else {
             logsInfo.Status = 1;
