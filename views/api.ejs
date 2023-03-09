@@ -1,0 +1,46 @@
+<%- include('navbar') -%>
+<head>
+    <title>Logs | Contact</title>
+    <meta name="description" content="Best Logs API" />
+    <meta property="og:title" content="Logs | API" />
+    <meta property="og:image" content="/static/DankG.png" />
+    <meta property="og:description" content="Best Logs API" />
+
+</head>
+<body>
+    <div class="text-center margin">
+        <h1>API</h1>
+        
+        <kbd>api/:channel/:user</kbd>
+        <p>API for a user's logs in a channel<br>
+        <ul style="list-style: none;">
+            <li><b>:chananel</b> - It can be a user name (TenkSit)</li>
+            <li><b>:user</b> - It can be a user name (vicesmile) or an id (id:187698721)</li>
+        </ul>
+        <b>Example:</b><br>
+        <a target="_BLANK" href="/api/orslok/Spanixbot">https://logs.zonian.me/api/orslok/Spanixbot</a></p>
+        <a target="_BLANK" href="/api/forsen/id:117691339">https://logs.zonian.me/api/forsen/id:11769133</a></p>
+
+        <ul style="list-style: none;">
+            <li><b>force (bool):</b> - Forces API to update the list of stored channels</li>
+            <li><b>full (bool):</b> - Gets all instances where logs are available (takes longer to respond)</li>
+            <li><b>plain (bool):</b> - Get the instance link in plain text</li>
+            <li><b>pretty (bool):</b> - Get the links using an enhanced version of the logs</li>
+        </ul>
+
+        <kbd>rdr/:channel/:user</kbd>
+        <p>Automatic redirection to a user's logs on a channel<br>
+        <ul style="list-style: none;">
+            <li><b>:chananel</b> - It can be a user name (notlushin)</li>
+            <li><b>:user</b> - It can be a user name (Drapsnatt) or an id (id:43547909)</li>
+        </ul>
+        <b>Example:</b><br>
+        <a target="_BLANK" href="/rdr/FapParaMoar/Rubius">https://logs.zonian.me/rdr/FapParaMoar/Rubius</a></p>
+        <a target="_BLANK" href="/rdr/ZonianMidian/id:570220755">https://logs.zonian.me/rdr/ZonianMidian/id:570220755</a></p>
+
+        <ul style="list-style: none;">
+            <li><b>forced (bool):</b> - Forces API to update the list of stored channels</li>
+            <li><b>pretty (bool):</b> - Get the links using an enhanced version of the logs</li>
+        </ul>
+    </div>
+</body>

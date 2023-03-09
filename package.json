@@ -1,0 +1,25 @@
+{
+  "name": "best-logs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "got": "^11.8.6",
+    "ioredis": "^5.3.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "ZonianMidian",
+  "description": "API and website that provides the best logs of a user for a Twitch channel",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZonianMidian/best-logs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ZonianMidian/best-logs/issues"
+  },
+  "homepage": "https://github.com/ZonianMidian/best-logs#readme"
+}

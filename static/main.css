@@ -1,0 +1,64 @@
+::-webkit-scrollbar {
+    display: none;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Helvetica;
+}
+
+blockquote.h1 {
+    font-size: 1em;
+    margin: 0.83em 0;
+    font-weight: bold;
+}
+
+img.logo {
+    height: 40px;
+    float: left;
+}
+
+a.fa-brands {
+    color: #fff;
+    font-size: 50px;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.navbarImage {
+    margin: 0 10px;
+    height: 40px;
+    vertical-align: middle;
+}
+
+form {
+    padding: 0 20px;
+}
+
+#urlInput {
+    padding: 10px;
+    resize: none;
+    outline: none;
+    caret-color: transparent;
+}
+
+.margin {
+    margin-top: 2%;
+}
+
+h1.title {
+    text-align: center;
+    font-size: 50px;
+    color: purple;
+}
+
+img.emote_image {
+    position: relative;
+    right: -10%;
+    height: 50px;
+    max-width: 30%;
+}
