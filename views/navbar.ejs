@@ -33,20 +33,20 @@
                     <a class="nav-link" href="/faq">FAQ</a>
                 </li>
             </ul>
-            <form id="Search" onsubmit="redirect(); return false" method="get" action="" class="d-flex" role="search">
+            <form id="Search" onsubmit="newTab(); return false" method="get" action="" class="d-flex" role="search">
                 <input id="channelInput" class="form-control me-2" type="search" placeholder="Channel" aria-label="Channel"
                     style="border:none" autofocus required>
                 <input id="userInput" class="form-control me-2" type="search" placeholder="User" aria-label="User"
-                    style="border:none" autofocus required>
+                    style="border:none" autofocus>
                 <button class="btn btn-light" type="submit">🔍</button>
             </form>
         </div>
     </div>
 </nav>
 <script>
-    function redirect() {
-        window.location.href =
-            `/rdr/${document.getElementById("channelInput").value.trim()}/${document.getElementById("userInput").value.trim()}`
+    function newTab() {
+        window.open(`/rdr/${document.getElementById("channelInput").value.trim()}/${document.getElementById("userInput").value.trim()}`
+        ,'_blank')
     }
 </script>
 
