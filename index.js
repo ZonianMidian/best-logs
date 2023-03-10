@@ -10,7 +10,6 @@ app.set("view engine", "ejs");
 
 async function getInstance(channel, user, force, pretty, full, error) {
     const instances = (require("./data.json")).instances;
-    pretty = (pretty?.toLowerCase() === 'true')
     force = (force?.toLowerCase() === 'true')
     full = (full?.toLowerCase() === 'true')
 
@@ -122,10 +121,11 @@ async function getLogs(url, user, channel, force, pretty) {
     const channelClean = channel.replace('id:', '')
 
     if (!user && Channels.includes(channelClean)) {
+
         logsInfo.Status = 2
         logsInfo.Link = `https://${url}`
-        logsInfo.channelFull = (pretty) ? 
-            `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` : `https://${url}/?channel=${channel}`;
+        logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? 
+            `https://${url}/?channel=${channel}` : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
         return logsInfo;
 
     } else if (Channels.includes(channelClean)) {
@@ -147,19 +147,17 @@ async function getLogs(url, user, channel, force, pretty) {
         if (Code < 200 || Code > 299) {
             logsInfo.Status = 2
             logsInfo.Link = `https://${url}`
-            logsInfo.channelFull = (pretty) ? 
-                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` 
-                : `https://${url}/?channel=${channel}`;
+            logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? `https://${url}/?channel=${channel}`:
+                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
         }
         else {
             logsInfo.Status = 1;
             logsInfo.Link = `https://${url}`;
-            logsInfo.Full = (pretty) ? 
+            logsInfo.Full = (pretty?.toLowerCase() === 'true') ? 
                 `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}` 
                 : `https://${url}/?channel=${channel}&username=${user}`;
-            logsInfo.channelFull = (pretty) ? 
-                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` 
-                : `https://${url}/?channel=${channel}`;
+            logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? `https://${url}/?channel=${channel}`:
+                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
         }
 
         return logsInfo;
