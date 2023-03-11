@@ -47,8 +47,8 @@ async function getInstance(channel, user, force, pretty, full, error) {
 
     if(force) await utils.redis.set(`logs:updated`, Math.round((new Date()).getTime() / 1000))
 
-    if(!error && userInstances.length === 0 && channelInstances.length === 0) error = "No channel logs found"
-    if(!error & user && userInstances.length === 0 && channelInstances.length > 0) error = "No user logs found"
+    if(!error && !channelInstances.length) error = "No channel logs found"
+    else if(!error && !userInstances.length && user) error = "No user logs found"
     const end = performance.now();
 
     return {
