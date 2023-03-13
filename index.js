@@ -202,13 +202,14 @@ app.get("/contact", async (req, res) => {
 });
 
 app.get("/rdr/:channel", async (req, res) => {
-    const { channel } = req.params;
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: "Invalid channel or channel ID", code: "" });
+    const channel = utils.formatUsername(decodeURIComponent(req.params.channel));
+
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: `Invalid channel or channel ID: ${channel}`, code: "" });
 
     const { force, pretty } = req.query;
 
     try {
-        const instance = await getInstance(utils.formatUsername(channel), null, force, pretty);
+        const instance = await getInstance(channel, null, force, pretty);
         if (instance.error) {
             return res.render("error", { error: instance.error, code: "" });
         } else {
@@ -221,14 +222,16 @@ app.get("/rdr/:channel", async (req, res) => {
 });
 
 app.get("/rdr/:channel/:user", async (req, res) => {
-    const { channel, user } = req.params;
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) return res.render("error", { error: "Invalid username or user ID", code: "" });
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: "Invalid channel or channel ID", code: "" });
+    const channel = utils.formatUsername(decodeURIComponent(req.params.channel));
+    const user = utils.formatUsername(decodeURIComponent(req.params.user));
+
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: `Invalid channel or channel ID: ${channel}`, code: "" });
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) return res.render("error", { error: `Invalid username or user ID: ${user}`, code: "" });
 
     const { force, pretty } = req.query;
 
     try {
-        const instance = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty);
+        const instance = await getInstance(channel, user, force, pretty);
         if (instance.error) {
             return res.render("error", { error: instance.error, code: "" });
         } else {
@@ -242,12 +245,13 @@ app.get("/rdr/:channel/:user", async (req, res) => {
 
 app.get("/api/:channel", async (req, res) => {
     const { force, full, pretty, plain } = req.query;
-    const { channel } = req.params;
+    const channel = utils.formatUsername(decodeURIComponent(req.params.channel));
     let error = null;
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) error = "Invalid channel or channel ID";
+
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) error = `Invalid channel or channel ID: ${channel}`;
 
     try {
-        const instances = await getInstance(utils.formatUsername(channel), null, force, pretty, full, error);
+        const instances = await getInstance(channel, null, force, pretty, full, error);
         if (plain?.toLowerCase() === 'true') {
             return res.send(instances?.channelLogs?.fullLink[0] ?? instances?.error);
         } else {
@@ -264,13 +268,15 @@ app.get("/api/:channel", async (req, res) => {
 
 app.get("/api/:channel/:user", async (req, res) => {
     const { force, full, pretty, plain } = req.query;
-    const { channel, user } = req.params;
+    const channel = utils.formatUsername(decodeURIComponent(req.params.channel));
+    const user = utils.formatUsername(decodeURIComponent(req.params.user));
     let error = null;
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) error = "Invalid username or user ID";
-    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) error = "Invalid channel or channel ID";
+
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) error = `Invalid channel or channel ID: ${channel}`;
+    if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) error = `Invalid username or user ID: ${user}`;
 
     try {
-        const instances = await getInstance(utils.formatUsername(channel), utils.formatUsername(user), force, pretty, full, error);
+        const instances = await getInstance(channel, user, force, pretty, full, error);
         if (plain?.toLowerCase() === 'true') {
             return res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
         } else {
