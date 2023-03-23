@@ -19,7 +19,7 @@ async function getInstance(channel, user, force, pretty, full, error) {
     let userInstances = []
     let channelInstances = []
 
-    if(Number(await utils.redis.get(`logs:updated`)) - Math.round((new Date()).getTime() / 1000) > 86400) force = true
+    if (Number(await utils.redis.get(`logs:updated`)) - Math.round((new Date()).getTime() / 1000) > 86400) force = true
 
     const start = performance.now();
     if (!error) for (const Website of instances) {
@@ -45,10 +45,10 @@ async function getInstance(channel, user, force, pretty, full, error) {
         break;
     }
 
-    if(force) await utils.redis.set(`logs:updated`, Math.round((new Date()).getTime() / 1000))
+    if (force) await utils.redis.set(`logs:updated`, Math.round((new Date()).getTime() / 1000))
 
-    if(!error && !channelInstances.length) error = "No channel logs found"
-    else if(!error && !userInstances.length && user) error = "No user logs found"
+    if (!error && !channelInstances.length) error = "No channel logs found"
+    else if (!error && !userInstances.length && user) error = "No user logs found"
     const end = performance.now();
 
     return {
@@ -83,7 +83,7 @@ async function getInstance(channel, user, force, pretty, full, error) {
         },
         elapsed: {
             ms: Math.round((end - start) * 100) / 100,
-            s: Math.round((end - start)/10) / 100
+            s: Math.round((end - start) / 10) / 100
         }
     }
 }
@@ -104,10 +104,10 @@ async function getLogs(url, user, channel, force, pretty) {
         Channels = JSON.parse(cacheData)
     } else {
         try {
-            var logsData = await got(`https://${url}/channels`, { 
+            var logsData = await got(`https://${url}/channels`, {
                 responseType: "json",
                 http2: true,
-                headers: {"User-Agent": "Best Logs by ZonianMidian"}
+                headers: { "User-Agent": "Best Logs by ZonianMidian" }
             });
             Channels = [].concat(logsData.body.channels.map((i) => i.name), logsData.body.channels.map((i) => i.userID))
             await utils.redis.set(`logs:instance:${url}`, JSON.stringify(Channels))
@@ -124,7 +124,7 @@ async function getLogs(url, user, channel, force, pretty) {
 
         logsInfo.Status = 2
         logsInfo.Link = `https://${url}`
-        logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? 
+        logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ?
             `https://${url}/?channel=${channel}` : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
         return logsInfo;
 
@@ -147,16 +147,16 @@ async function getLogs(url, user, channel, force, pretty) {
         if (Code < 200 || Code > 299) {
             logsInfo.Status = 2
             logsInfo.Link = `https://${url}`
-            logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? `https://${url}/?channel=${channel}`:
+            logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? `https://${url}/?channel=${channel}` :
                 `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
         }
         else {
             logsInfo.Status = 1;
             logsInfo.Link = `https://${url}`;
-            logsInfo.Full = (pretty?.toLowerCase() === 'true') ? 
-                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}` 
+            logsInfo.Full = (pretty?.toLowerCase() === 'true') ?
+                `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`
                 : `https://${url}/?channel=${channel}&username=${user}`;
-            logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? `https://${url}/?channel=${channel}`:
+            logsInfo.channelFull = (pretty?.toLowerCase() === 'false') ? `https://${url}/?channel=${channel}` :
                 `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
         }
 
@@ -173,6 +173,7 @@ async function getInfo(user) {
         {
             throwHttpErrors: false,
             responseType: "json",
+            headers: { "User-Agent": "Best Logs by ZonianMidian" }
         }
     );
     if (statusCode < 200 || statusCode > 299) return null;
@@ -216,9 +217,9 @@ app.get("/rdr/:channel", async (req, res) => {
             return res.redirect(instance?.channelLogs?.fullLink[0]);
         }
     } catch (err) {
-        return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}`: ''}`, code: "" });
+        return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: "" });
     }
-    
+
 });
 
 app.get("/rdr/:channel/:user", async (req, res) => {
@@ -238,9 +239,9 @@ app.get("/rdr/:channel/:user", async (req, res) => {
             return res.redirect(instance?.userLogs?.fullLink[0]);
         }
     } catch (err) {
-        return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}`: ''}`, code: "" });
+        return res.render("error", { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: "" });
     }
-    
+
 });
 
 app.get("/api/:channel", async (req, res) => {
@@ -259,9 +260,9 @@ app.get("/api/:channel", async (req, res) => {
         }
     } catch (err) {
         if (plain?.toLowerCase() === 'true') {
-            return res.send(`Internal error${err.message ? ` - ${err.message}`: ''}`);
+            return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
         } else {
-            return res.send({ error: `Internal error${err.message ? ` - ${err.message}`: ''}` });
+            return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
         }
     }
 });
@@ -284,9 +285,9 @@ app.get("/api/:channel/:user", async (req, res) => {
         }
     } catch (err) {
         if (plain?.toLowerCase() === 'true') {
-            return res.send(`Internal error${err.message ? ` - ${err.message}`: ''}`);
+            return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
         } else {
-            return res.send({ error: `Internal error${err.message ? ` - ${err.message}`: ''}` });
+            return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
         }
     }
 });
