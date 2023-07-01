@@ -169,7 +169,7 @@ async function getLogs(url, user, channel, force, pretty) {
 
 async function getInfo(user) {
     const { body, statusCode } = await got(
-        `https://api.ivr.fi/v2/twitch/user/${user}`,
+        `https://api.ivr.fi/v2/twitch/user?login=${user}`,
         {
             throwHttpErrors: false,
             responseType: "json",
@@ -179,8 +179,8 @@ async function getInfo(user) {
     if (statusCode < 200 || statusCode > 299) return null;
 
     const displayName =
-        body.displayName.toLowerCase() === user ? body.displayName : user;
-    return { name: displayName, avatar: body.logo, id: body.id };
+        body[0].displayName.toLowerCase() === user ? body[0].displayName : user;
+    return { name: displayName, avatar: body[0].logo, id: body[0].id };
 }
 
 app.get("/", (req, res) => {
