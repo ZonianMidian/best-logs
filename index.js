@@ -207,10 +207,10 @@ app.get("/rdr/:channel", async (req, res) => {
 
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: `Invalid channel or channel ID: ${channel}`, code: "" });
 
-    const { force, pretty } = req.query;
+    const { pretty } = req.query;
 
     try {
-        const instance = await getInstance(channel, null, force, pretty);
+        const instance = await getInstance(channel, null, 'true', pretty);
         if (instance.error) {
             return res.render("error", { error: instance.error, code: "" });
         } else {
@@ -229,10 +229,10 @@ app.get("/rdr/:channel/:user", async (req, res) => {
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(channel)) return res.render("error", { error: `Invalid channel or channel ID: ${channel}`, code: "" });
     if (!new RegExp(/^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i).exec(user)) return res.render("error", { error: `Invalid username or user ID: ${user}`, code: "" });
 
-    const { force, pretty } = req.query;
+    const { pretty } = req.query;
 
     try {
-        const instance = await getInstance(channel, user, force, pretty);
+        const instance = await getInstance(channel, user, 'true', pretty);
         if (instance.error) {
             return res.render("error", { error: instance.error, code: "" });
         } else {
