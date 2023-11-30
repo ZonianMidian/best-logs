@@ -14,8 +14,8 @@
         <kbd>api/:channel/:user</kbd>
         <p>API for a user's logs in a channel<br>
         <ul style="list-style: none;">
-            <li><b>:channel</b> - It can be a user name (TenkSit) or an id (id:557479550)</li>
-            <li><b>:user (Optional)</b> - It can be a user name (vicesmile) or an id (id:187698721)</li>
+            <li><b>:channel</b> - It can be a username (TenkSit) or an id (id:557479550)</li>
+            <li><b>:user (Optional)</b> - It can be a username (vicesmile) or an id (id:187698721)</li>
         </ul>
         <b>Example:</b><br>
         <a target="_BLANK" href="/api/orslok/Spanixbot">https://logs.zonian.dev/api/orslok/Spanixbot</a></p>
@@ -28,11 +28,13 @@
             <li><b>pretty (bool):</b> - Get the links using an enhanced version of the logs</li>
         </ul>
 
+        <h1>Redirect</h1>
+
         <kbd>rdr/:channel/:user</kbd>
         <p>Automatic redirection to a user's logs on a channel<br>
         <ul style="list-style: none;">
-            <li><b>:channel</b> - It can be a user name (notlushin) or an id (id:410014058)</li>
-            <li><b>:user (Optional)</b> - It can be a user name (Drapsnatt) or an id (id:43547909)</li>
+            <li><b>:channel</b> - It can be a username (NOTLUSHIN) or an id (id:410014058)</li>
+            <li><b>:user (Optional)</b> - It can be a username (Drapsnatt) or an id (id:43547909)</li>
         </ul>
         <b>Example:</b><br>
         <a target="_BLANK" href="/rdr/FapParaMoar/Rubius">https://logs.zonian.dev/rdr/FapParaMoar/Rubius</a></p>
@@ -41,6 +43,23 @@
         <ul style="list-style: none;">
             <li><b>forced (bool):</b> - Forces API to update the list of stored channels</li>
             <li><b>pretty (bool):</b> - Get the links using an enhanced version of the logs</li>
+        </ul>
+
+        <h1>Recent Messages</h1>
+
+        <kbd>rm/:channel</kbd>
+        <p>The most complete data of recent-messages<br>
+        <ul style="list-style: none;">
+            <li><b>:channel</b> - It can only be a username (AlkalineXTw)</li>
+        </ul>
+        <b>Example:</b><br>
+        <a target="_BLANK" href="/rm/RyanPotat">https://logs.zonian.dev/rm/RyanPotat</a></p>
+
+        <ul style="list-style: none;">
+            <li><b>hide_moderation_messages (bool):</b> - Omits CLEARCHAT and CLEARMSG messages from the response</li>
+            <li><b>hide_moderated_messages (bool):</b> - Omits all messages from the response that have been deleted by a CLEARCHAT or CLEARMSG message</li>
+            <li><b>clearchat_to_notice (bool):</b> - Converts CLEARCHAT messages into NOTICE messages with a user-presentable message</li>
+            <li><b>limit (number):</b> - Limit the number of messages returned</li>
         </ul>
     </div>
 </body>

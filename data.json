@@ -1,6 +1,6 @@
 {
     "website": "https://justloginstances.zzls.xyz",
-    "instances": [
+    "justlogsInstances": [
         "logs.spanix.team",
         "logs.zzls.xyz",
         "logs.ivr.fi",
@@ -12,5 +12,6 @@
         "justlog.kkx.one",
         "logs.lucas19961.de",
         "logs.jimmyboy.dev"
-    ]
+    ],
+    "recentmessagesInstances": ["recent-messages.robotty.de", "recent-messages.zneix.eu"]
 }

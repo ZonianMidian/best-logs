@@ -1,3 +1,4 @@
+const data = require('./data.json');
 const express = require('express');
 const utils = require('./utils');
 const got = require('got');
@@ -9,9 +10,9 @@ app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
 
 async function getInstance(channel, user, force, pretty, full, error) {
-    const instances = require('./data.json').instances;
     force = force?.toLowerCase() === 'true';
     full = full?.toLowerCase() === 'true';
+    const instances = data.justlogsInstances;
 
     let downSites = 0;
     let userLinks = [];
@@ -186,6 +187,66 @@ async function getLogs(url, user, channel, force, pretty) {
     return logsInfo;
 }
 
+async function getRecentMessages(channel, options) {
+    const instances = data.recentmessagesInstances;
+
+    let finalInstance = null;
+    let searchParams = {};
+    let messagesData = [];
+    let errorCode = null;
+    let error = null;
+
+    const start = performance.now();
+
+    for (const param of Object.keys(options)) {
+        searchParams[param] = options[param];
+    }
+
+    for (const rm of instances) {
+        const { body } = await got(`https://${rm}/api/v2/recent-messages/${channel}`, {
+            searchParams,
+            throwHttpErrors: false,
+            responseType: 'json',
+            headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+        });
+
+        if (!body.error) {
+            if (body.messages.length && body.messages.length > messagesData.length) {
+                finalInstance = `https://${rm}`;
+                messagesData = body.messages;
+            }
+            continue;
+        } else {
+            errorCode = body.error_code;
+            error = body.error;
+            break;
+        }
+    }
+
+    const end = performance.now();
+    const elapsed = {
+        ms: Math.round((end - start) * 100) / 100,
+        s: Math.round((end - start) / 10) / 100,
+    };
+
+    if (finalInstance) {
+        return {
+            messages: messagesData,
+            error: null,
+            error_code: null,
+            instance: finalInstance,
+            elapsed,
+        };
+    } else {
+        return {
+            messages: [],
+            error: error,
+            error_code: errorCode,
+            elapsed,
+        };
+    }
+}
+
 async function getInfo(user) {
     const { body, statusCode } = await got(`https://api.ivr.fi/v2/twitch/user?login=${user}`, {
         throwHttpErrors: false,
@@ -199,7 +260,7 @@ async function getInfo(user) {
 }
 
 app.get('/', (req, res) => {
-    const instances = require('./data.json').instances;
+    const instances = data.justlogsInstances;
     res.render('index', { instances: instances });
 });
 
@@ -208,7 +269,7 @@ app.get('/api', async (req, res) => {
 });
 
 app.get('/faq', (req, res) => {
-    const instances = require('./data.json').instances;
+    const instances = data.justlogsInstances;
     res.render('faq', { instances: instances });
 });
 
@@ -307,6 +368,17 @@ app.get('/api/:channel/:user', async (req, res) => {
         } else {
             return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
         }
+    }
+});
+
+app.get('/rm/:channel', async (req, res) => {
+    const channel = utils.formatUsername(decodeURIComponent(req.params.channel));
+
+    try {
+        const recentMessages = await getRecentMessages(channel, req.query);
+        return res.send(recentMessages);
+    } catch (err) {
+        return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
 
