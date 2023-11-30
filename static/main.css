@@ -62,3 +62,14 @@ img.emote_image {
     height: 50px;
     max-width: 30%;
 }
+
+.form-control {
+    outline: none !important;
+    border: none !important;
+    background-color: #a9bdbd !important;
+}
+
+.form-control:focus {
+    border: none !important;
+    box-shadow: none !important;
+}
