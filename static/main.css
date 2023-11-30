@@ -73,3 +73,30 @@ img.emote_image {
     border: none !important;
     box-shadow: none !important;
 }
+
+.btn {
+    background-color: #a9bdbd !important;
+    border: none !important;
+}
+
+.btn:hover {
+    background-color: #909f9f !important;
+    border: none !important;
+}
+
+.navbar-brand {
+    color: #909f9f !important;
+    font-weight: 700 !important;
+}
+
+.fa-magnifying-glass {
+    color: var(--bs-body-bg) !important;
+}
+
+.hoster {
+    font-weight: 700 !important;
+}
+
+a {
+    text-decoration: none !important;
+}
