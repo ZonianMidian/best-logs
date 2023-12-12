@@ -60,6 +60,8 @@
             <li><b>hide_moderated_messages (bool):</b> - Omits all messages from the response that have been deleted by a CLEARCHAT or CLEARMSG message</li>
             <li><b>clearchat_to_notice (bool):</b> - Converts CLEARCHAT messages into NOTICE messages with a user-presentable message</li>
             <li><b>limit (number):</b> - Limit the number of messages returned</li>
+            <li><b>before (number):</b> - Only return messages that were received before (<) this timestamp (in milliseconds since the unix epoch, this refers to the rm-received-rs timestamp)</li>
+            <li><b>after (number):</b> - Only return messages that were received after (>) this timestamp (in milliseconds since the unix epoch, this refers to the rm-received-rs timestamp)</li>
         </ul>
     </div>
 </body>

@@ -108,9 +108,9 @@ exports.getLogs = async (url, user, channel, force, pretty) => {
     } else {
         try {
             var logsData = await got(`https://${url}/channels`, {
+                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 responseType: 'json',
                 http2: true,
-                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             });
             Channels = [].concat(
                 logsData.body.channels.map((i) => i.name),
@@ -147,9 +147,9 @@ exports.getLogs = async (url, user, channel, force, pretty) => {
             Code = JSON.parse(cacheData);
         } else {
             const { statusCode } = await got(`https://${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
+                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 throwHttpErrors: false,
                 http2: true,
-                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             });
             await utils.redis.set(
                 `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`,
@@ -187,64 +187,56 @@ exports.getLogs = async (url, user, channel, force, pretty) => {
     return logsInfo;
 };
 
-exports.getRecentMessages = async (channel, options) => {
+exports.getRecentMessages = async (channel, searchParams) => {
     const instances = data.recentmessagesInstances;
 
     let finalInstance = null;
-    let searchParams = {};
+    let statusMessage = null;
     let messagesData = [];
     let errorCode = null;
+    let status = null;
     let error = null;
+    let end = null;
 
     const start = performance.now();
 
-    for (const param of Object.keys(options)) {
-        searchParams[param] = options[param];
-    }
-
-    for (const rm of instances) {
-        const { body } = await got(`https://${rm}/api/v2/recent-messages/${channel}`, {
-            searchParams,
+    const fetchMessages = async (instance) => {
+        const { body, statusCode } = await got(`https://${instance}/api/v2/recent-messages/${channel}`, {
+            headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             throwHttpErrors: false,
             responseType: 'json',
-            headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+            searchParams,
         });
 
-        if (!body.error) {
-            if (body.messages.length && body.messages.length > messagesData.length) {
-                finalInstance = `https://${rm}`;
-                messagesData = body.messages;
-            }
-            continue;
-        } else {
-            errorCode = body.error_code;
-            error = body.error;
+        return { body, statusCode };
+    };
+
+    for (const instance of instances) {
+        const { body, statusCode } = await fetchMessages(instance);
+
+        if (statusCode === 200 && body.messages.length) {
+            finalInstance = `https://${instance}`;
+            messagesData = body.messages;
             break;
+        } else {
+            statusMessage = body?.status_message || 'Internal Server Error';
+            errorCode = body?.error_code || 'internal_server_error';
+            error = body?.error || 'Internal Server Error';
+            status = statusCode || '500';
         }
     }
 
-    const end = performance.now();
+    end = performance.now();
     const elapsed = {
         ms: Math.round((end - start) * 100) / 100,
         s: Math.round((end - start) / 10) / 100,
     };
 
-    if (finalInstance) {
-        return {
-            messages: messagesData,
-            error: null,
-            error_code: null,
-            instance: finalInstance,
-            elapsed,
-        };
-    } else {
-        return {
-            messages: [],
-            error: error,
-            error_code: errorCode,
-            elapsed,
-        };
-    }
+    const response = finalInstance
+        ? { messages: messagesData, error: null, error_code: null, instance: finalInstance, elapsed }
+        : { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
+
+    return response;
 };
 
 exports.getInfo = async (user) => {
