@@ -110,6 +110,7 @@ exports.getLogs = async (url, user, channel, force, pretty) => {
             var logsData = await got(`https://${url}/channels`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 responseType: 'json',
+                timeout: 5000,
                 http2: true,
             });
             Channels = [].concat(
@@ -149,6 +150,7 @@ exports.getLogs = async (url, user, channel, force, pretty) => {
             const { statusCode } = await got(`https://${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 throwHttpErrors: false,
+                timeout: 5000,
                 http2: true,
             });
             await utils.redis.set(
@@ -205,6 +207,7 @@ exports.getRecentMessages = async (channel, searchParams) => {
             headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             throwHttpErrors: false,
             responseType: 'json',
+            timeout: 5000,
             searchParams,
         });
 
@@ -241,9 +244,10 @@ exports.getRecentMessages = async (channel, searchParams) => {
 
 exports.getInfo = async (user) => {
     const { body, statusCode } = await got(`https://api.ivr.fi/v2/twitch/user?login=${user}`, {
+        headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
         throwHttpErrors: false,
         responseType: 'json',
-        headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+        timeout: 5000,
     });
     if (statusCode < 200 || statusCode > 299) return null;
 
