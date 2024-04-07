@@ -158,8 +158,6 @@ module.exports = new class LogUtils {
     };
 
     async getLogs(url, user, channel, force, pretty) {
-        if (force) await this.loopLoadInstanceChannels();
-    
         const channels = this.instanceChannels.get(url) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
         const channelClean = channel.replace('id:', '');
