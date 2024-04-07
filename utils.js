@@ -27,10 +27,8 @@ module.exports = new class LogUtils {
         let count = new Set();
         await Promise.allSettled(data.justlogsInstances.map(async (url) => {
             try {
-                let thisURL;
-                if (url === 'logs.lucas19961.de') thisURL = 'logsback.susgee.dev'
-                else thisURL = url;
-                const logsData = await got(`https://${thisURL}/channels`, {
+                if (data.alternateEndpoint[url]) url = data.alternateEndpoint[url]
+                const logsData = await got(`https://${url}/channels`, {
                     headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                     responseType: 'json',
                     timeout: 5000,

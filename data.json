@@ -13,5 +13,8 @@
         "logs.flake.sh",
         "logs.potat.app"
     ],
+    "alternateEndpoint":{
+        "logs.lucas19961.de": "logsback.susgee.dev"
+    },
     "recentmessagesInstances": ["recent-messages.zneix.eu", "recent-messages.robotty.de"]
 }
