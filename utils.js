@@ -127,7 +127,6 @@ module.exports = new class LogUtils {
                 user: user,
                 channel: channel,
                 forced: force,
-                full: full,
             },
             available: {
                 user: userInstances.length > 0 ? true : false,
