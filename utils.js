@@ -67,9 +67,8 @@ module.exports = new class LogUtils {
         );
     }
 
-    async getInstance(channel, user, force, pretty, full, error) {
+    async getInstance(channel, user, force, pretty, error) {
         force = force?.toLowerCase() === 'true';
-        full = full?.toLowerCase() === 'true';
         const instances = data.justlogsInstances;
     
         let downSites = 0;
@@ -92,14 +91,13 @@ module.exports = new class LogUtils {
                 switch (Status) {
                     case 0:
                         downSites++;
-                        break;
+                        continue;
                     case 1:
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
                         userInstances.push(Link);
                         userLinks.push(Full);
-                        if (full) continue;
-                        break;
+                        continue;
                     case 2:
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
@@ -107,7 +105,6 @@ module.exports = new class LogUtils {
                     case 3:
                         continue;
                 }
-                break;
             }
         }
         
@@ -196,8 +193,9 @@ module.exports = new class LogUtils {
             `https://${url}/?channel=${channel}` :
             `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
 
+        console.log(`[${url}] Channel: ${channel} - User: ${user} - ${statusCode}`)
         return {
-            Status: ~~(statusCode/100) === 2 ? 2 : 1,
+            Status: ~~(statusCode/100) === 2 ? 1 : 2,
             Link: `https://${url}`,
             Full: fullLink,
             channelFull: channelFull,

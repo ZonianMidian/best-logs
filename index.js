@@ -66,7 +66,7 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 });
 
 app.get('/api/:channel', async (req, res) => {
-    const { force, full, pretty, plain } = req.query;
+    const { force, pretty, plain } = req.query;
     const channel = utils.formatUsername(req.params.channel);
     let error = null;
 
@@ -77,7 +77,7 @@ app.get('/api/:channel', async (req, res) => {
 
     const isPlain = plain?.toLowerCase() === 'true';
     try {
-        const instances = await utils.getInstance(channel, null, force, pretty, full, error);
+        const instances = await utils.getInstance(channel, null, force, pretty, error);
         if (isPlain) return res.send(instances?.channelLogs?.fullLink[0] ?? instances?.error);
         else return res.send(instances);
     } catch (err) {
@@ -87,7 +87,7 @@ app.get('/api/:channel', async (req, res) => {
 });
 
 app.get('/api/:channel/:user', async (req, res) => {
-    const { force, full, pretty, plain } = req.query;
+    const { force, pretty, plain } = req.query;
     const channel = utils.formatUsername(req.params.channel);
     const user = utils.formatUsername(req.params.user);
     let error = null;
@@ -100,7 +100,7 @@ app.get('/api/:channel/:user', async (req, res) => {
 
     const isPlain = plain?.toLowerCase() === 'true';
     try {
-        const instances = await utils.getInstance(channel, user, force, pretty, full, error);
+        const instances = await utils.getInstance(channel, user, force, pretty, error);
         if (isPlain) return res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
         else return res.send(instances);
     } catch (err) {
