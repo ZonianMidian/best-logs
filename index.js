@@ -70,7 +70,7 @@ app.get('/api/:channel', async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
     let error = null;
 
-    if (force) utils.loopLoadInstanceChannels();
+    if (force) await utils.loopLoadInstanceChannels();
 
     if (!utils.userChanRegex.test(channel))
         error = `Invalid channel or channel ID: ${channel}`;
@@ -92,7 +92,7 @@ app.get('/api/:channel/:user', async (req, res) => {
     const user = utils.formatUsername(req.params.user);
     let error = null;
 
-    if (force) utils.loopLoadInstanceChannels();
+    if (force) await utils.loopLoadInstanceChannels();
 
     if (!utils.userChanRegex.test(channel))
         error = `Invalid channel or channel ID: ${channel}`;
