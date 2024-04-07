@@ -30,6 +30,9 @@ module.exports = new class LogUtils {
                 if (data.alternateEndpoint[url]) url = data.alternateEndpoint[url]
                 const logsData = await got(`https://${url}/channels`, {
                     headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                    https: {
+                        rejectUnauthorized: false
+                    },
                     responseType: 'json',
                     timeout: 5000,
                     http2: true,
