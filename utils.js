@@ -28,35 +28,40 @@ module.exports = new class LogUtils {
         let userInstances = [];
         let channelInstances = [];
     
+        const start = performance.now();
+
         let time = await this.redis.get(`logs:updated`);
         if (Number(time) - this.getNow() > 86400) force = true;
-    
-        const start = performance.now();
-        if (!error)
-            await Promise.allSettled(instances.map(async (Website) => {
-                const { Status, Link, Full, channelFull } = await this.getLogs(Website, user, channel, force, pretty);
+        if (!error) {
+            const resolvedInstances = await Promise
+              .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
+              .filter(res => res.status === 'fulfilled').map(data => data.value);
+            
+            for (const instance of resolvedInstances) {
+                const { Status, Link, Full, channelFull } = instance;
                 switch (Status) {
                     case 0:
                         downSites++;
-                        return;
+                        break;
                     case 1:
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
                         userInstances.push(Link);
                         userLinks.push(Full);
                         if (full) {
-                            return;
+                            continue;
                         }
                         break;
                     case 2:
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
-                        return;
+                        continue;
                     case 3:
-                        return;
+                        continue;
                 }
-            })).then(res => res.filter(r => r.status === 'fulfilled')).map(r => r.value);
-    
+                break;
+            }
+        }
         
         if (force) {
             time = this.getNow();
@@ -115,9 +120,8 @@ module.exports = new class LogUtils {
         let Channels;
         const cacheData = await this.redis.get(`logs:instance:${url}`);
     
-        if (cacheData && !force) {
-            Channels = JSON.parse(cacheData);
-        } else {
+        if (cacheData && !force) Channels = JSON.parse(cacheData);
+        else {
             try {
                 const logsData = await got(`https://${url}/channels`, {
                     headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
@@ -165,7 +169,7 @@ module.exports = new class LogUtils {
                     timeout: 5000,
                     http2: true,
                 });
-                await this.redis.set(
+                this.redis.set(
                     `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`,
                     statusCode,
                     'EX',
