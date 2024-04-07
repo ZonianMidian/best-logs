@@ -2,12 +2,18 @@ const data = require('./data.json');
 const ioredis = require('ioredis');
 const got = require('got');
 
+let loadLoop;
 module.exports = new class LogUtils {
     redis = new ioredis();
 
+    instanceChannels = new Map();
+
+    reloadInterval = 2 * 60 * 60 * 1000;
+    
     userIdRegex = /^id:(\d{1,})$/i;
 
     userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
+
 
     formatUsername(username) {
         return decodeURIComponent(username.replace(/[@#,]/g, '').toLowerCase());
@@ -15,6 +21,49 @@ module.exports = new class LogUtils {
 
     getNow() {
         return Math.round(Date.now() / 1000)
+    }
+
+    async loadInstanceChannels() {
+        let count = new Set();
+        await Promise.allSettled(data.justlogsInstances.map(async (url) => {
+            try {
+                let thisURL;
+                if (url === 'logs.lucas19961.de') thisURL = 'logsback.susgee.dev'
+                else thisURL = url;
+                const logsData = await got(`https://${thisURL}/channels`, {
+                    headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                    responseType: 'json',
+                    timeout: 5000,
+                    http2: true,
+                });
+                
+                if (!logsData.body?.channels?.length) throw new Error(`${url}: No channels found`);
+                const channels = [].concat(
+                    logsData.body.channels.map((i) => i.name),
+                    logsData.body.channels.map((i) => i.userID),
+                );
+
+                for (let id of logsData.body.channels.map((i) => i.userID)) count.add(id);
+
+                this.instanceChannels.set(url, channels);
+            } catch (err) {
+                console.error(`Failed loading channels for ${url}: ${err.message}`);
+                this.instanceChannels.set(url, [])
+            }
+        }))
+
+        console.log(`Loaded ${count.size} channels from ${data.justlogsInstances.length} instances`);
+    }
+
+    async loopLoadInstanceChannels() {
+        clearInterval(loadLoop)
+
+        await this.loadInstanceChannels();
+
+        loadLoop = setInterval(
+            this.loadInstanceChannels, 
+            this.reloadInterval
+        );
     }
 
     async getInstance(channel, user, force, pretty, full, error) {
@@ -35,8 +84,8 @@ module.exports = new class LogUtils {
         if (!error) {
             const resolvedInstances = await Promise
               .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
-              .filter(res => res.status === 'fulfilled').map(data => data.value);
-            
+              .then(r => r.filter(res => res.status === 'fulfilled').map(data => data.value));
+
             for (const instance of resolvedInstances) {
                 const { Status, Link, Full, channelFull } = instance;
                 switch (Status) {
@@ -48,9 +97,7 @@ module.exports = new class LogUtils {
                         channelInstances.push(Link);
                         userInstances.push(Link);
                         userLinks.push(Full);
-                        if (full) {
-                            continue;
-                        }
+                        if (full) continue;
                         break;
                     case 2:
                         channelLinks.push(channelFull);
@@ -110,99 +157,52 @@ module.exports = new class LogUtils {
     };
 
     async getLogs(url, user, channel, force, pretty) {
-        let logsInfo = {
-            Status: Number,
-            Link: String ?? null,
-            Full: String ?? null,
-            channelFull: String ?? null,
-        };
+        if (force) await this.loopLoadInstanceChannels();
     
-        let Channels;
-        const cacheData = await this.redis.get(`logs:instance:${url}`);
-    
-        if (cacheData && !force) Channels = JSON.parse(cacheData);
-        else {
-            try {
-                const logsData = await got(`https://${url}/channels`, {
-                    headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                    responseType: 'json',
-                    timeout: 5000,
-                    http2: true,
-                });
-                Channels = [].concat(
-                    logsData.body.channels.map((i) => i.name),
-                    logsData.body.channels.map((i) => i.userID),
-                );
-                await this.redis.set(`logs:instance:${url}`, JSON.stringify(Channels));
-            } catch (err) {
-                logsInfo.Status = 0;
-                return logsInfo;
-            }
-        }
-    
+        const channels = this.instanceChannels.get(url) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
         const channelClean = channel.replace('id:', '');
-    
-        if (!user && Channels.includes(channelClean)) {
-            logsInfo.Status = 2;
-            logsInfo.Link = `https://${url}`;
-            logsInfo.channelFull =
-                pretty?.toLowerCase() === 'false'
-                    ? `https://${url}/?channel=${channel}`
-                    : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
-            return logsInfo;
-        } else if (Channels.includes(channelClean)) {
-            const cacheData = await this.redis.get(
-                `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`,
-            );
-            let Code;
-    
-            const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
-            const userClean = user.replace('id:', '');
-    
-            if (cacheData && !force) {
-                Code = JSON.parse(cacheData);
-            } else {
-                const { statusCode } = await got(`https://${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
-                    headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                    throwHttpErrors: false,
-                    timeout: 5000,
-                    http2: true,
-                });
-                this.redis.set(
-                    `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`,
-                    statusCode,
-                    'EX',
-                    86400,
-                );
-                Code = statusCode;
-            }
-    
-            if (Code < 200 || Code > 299) {
-                logsInfo.Status = 2;
-                logsInfo.Link = `https://${url}`;
-                logsInfo.channelFull =
-                    pretty?.toLowerCase() === 'false'
-                        ? `https://${url}/?channel=${channel}`
-                        : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
-            } else {
-                logsInfo.Status = 1;
-                logsInfo.Link = `https://${url}`;
-                logsInfo.Full =
-                    pretty?.toLowerCase() === 'true'
-                        ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`
-                        : `https://${url}/?channel=${channel}&username=${user}`;
-                logsInfo.channelFull =
-                    pretty?.toLowerCase() === 'false'
-                        ? `https://${url}/?channel=${channel}`
-                        : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
-            }
-    
-            return logsInfo;
+
+        if (!channels.length) return { Status: 0 };
+        if (!channels.includes(channelClean)) return { Status: 3 };
+
+        if (!user) return {
+            Status: 2,
+            Link: `https://${url}`,
+            channelFull: pretty?.toLowerCase() === 'false'
+                ? `https://${url}/?channel=${channel}`
+                : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`,
         }
-    
-        logsInfo.Status = 3;
-        return logsInfo;
+
+        const cacheKey = `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`;
+        const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
+        const userClean = user.replace('id:', '');
+        
+        let statusCode = JSON.parse(await this.redis.get(cacheKey) ?? "null");
+        if (!statusCode || force) {
+            statusCode = await got(`https://${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
+                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                throwHttpErrors: false,
+                timeout: 5000,
+                http2: true,
+            }).then(res => res.statusCode)
+            this.redis.set(cacheKey, statusCode, 'EX', 86400);
+        }
+
+        const fullLink = pretty?.toLowerCase() === 'true' ?
+            `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}` :
+            `https://${url}/?channel=${channel}&username=${user}`;
+
+        const channelFull = pretty?.toLowerCase() === 'false' ?
+            `https://${url}/?channel=${channel}` :
+            `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
+
+        return {
+            Status: ~~(statusCode/100) === 2 ? 2 : 1,
+            Link: `https://${url}`,
+            Full: fullLink,
+            channelFull: channelFull,
+        };
     };
 
     async fetchMessages(instance, channel, searchParams) {
@@ -236,7 +236,7 @@ module.exports = new class LogUtils {
                 error: body?.error ?? 'Internal Server Error',
                 status: statusCode ?? '500'
             }
-        })).filter(res => res.status === 'fulfilled'),
+        })).then(r => r.filter(res => res.status === 'fulfilled')),
 
         end = performance.now(),
 

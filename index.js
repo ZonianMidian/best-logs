@@ -2,7 +2,7 @@ const data = require('./data.json');
 const express = require('express');
 const utils = require('./utils');
 const app = express();
-const port = 2028;
+const port = 3111;
 
 app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
 app.use('/static', express.static(`${__dirname}/static`));
@@ -132,5 +132,6 @@ app.use(function (err, req, res, next) {
 });
 
 app.listen(port, () => {
+    utils.loopLoadInstanceChannels();
     console.log(`Logs website listening on ${port}`);
 });
