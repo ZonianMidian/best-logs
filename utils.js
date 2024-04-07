@@ -13,6 +13,10 @@ module.exports = new class LogUtils {
         return decodeURIComponent(username.replace(/[@#,]/g, '').toLowerCase());
     }
 
+    getNow() {
+        return Math.round(Date.now() / 1000)
+    }
+
     async getInstance(channel, user, force, pretty, full, error) {
         force = force?.toLowerCase() === 'true';
         full = full?.toLowerCase() === 'true';
@@ -24,7 +28,8 @@ module.exports = new class LogUtils {
         let userInstances = [];
         let channelInstances = [];
     
-        if (Number(await this.redis.get(`logs:updated`)) - Math.round(new Date().getTime() / 1000) > 86400) force = true;
+        let time = await this.redis.get(`logs:updated`);
+        if (Number(time) - this.getNow() > 86400) force = true;
     
         const start = performance.now();
         if (!error)
@@ -52,8 +57,12 @@ module.exports = new class LogUtils {
                 }
             })).then(res => res.filter(r => r.status === 'fulfilled')).map(r => r.value);
     
-        if (force) await this.redis.set(`logs:updated`, Math.round(new Date().getTime() / 1000));
-    
+        
+        if (force) {
+            time = this.getNow();
+            this.redis.set(`logs:updated`, time);
+        }
+
         if (!error && !channelInstances.length) error = 'No channel logs found';
         else if (!error && !userInstances.length && user) error = 'No user logs found';
         const end = performance.now();
@@ -85,8 +94,8 @@ module.exports = new class LogUtils {
                 fullLink: channelLinks,
             },
             lastUpdated: {
-                unix: Number(await this.redis.get(`logs:updated`)),
-                utc: new Date((await this.redis.get(`logs:updated`)) * 1000).toUTCString(),
+                unix: Number(time),
+                utc: new Date(time * 1000).toUTCString(),
             },
             elapsed: {
                 ms: Math.round((end - start) * 100) / 100,
