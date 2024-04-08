@@ -139,7 +139,7 @@ module.exports = new class LogUtils {
                 fullLink: channelLinks,
             },
             lastUpdated: {
-                unix: Number(this.lastUpdated / 1000),
+                unix: ~~(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
             },
             elapsed: {
