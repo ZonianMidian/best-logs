@@ -81,7 +81,7 @@ module.exports = new class LogUtils {
     
         const start = performance.now();
 
-        if (force) await utils.loopLoadInstanceChannels();
+        if (force) await this.loopLoadInstanceChannels();
         if (!error) {
             const resolvedInstances = await Promise
               .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
