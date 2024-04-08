@@ -13,5 +13,9 @@
         "logs.flake.sh",
         "logs.potat.app"
     ],
+    "alternateEndpoint":{
+        "logs.lucas19961.de": "logsback.susgee.dev",
+        "harambelogs.pl": "logs.zneix.eu"
+    },
     "recentmessagesInstances": ["recent-messages.zneix.eu", "recent-messages.robotty.de"]
 }
