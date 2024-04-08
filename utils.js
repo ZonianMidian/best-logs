@@ -1,12 +1,13 @@
 const data = require('./data.json');
-const ioredis = require('ioredis');
 const got = require('got');
 
 let loadLoop;
 module.exports = new class LogUtils {
-    redis = new ioredis();
+    lastUpdated = Date.now();
 
     instanceChannels = new Map();
+
+    statusCodes = new Map();
 
     reloadInterval = 2 * 60 * 60 * 1000;
     
@@ -52,7 +53,7 @@ module.exports = new class LogUtils {
                 this.instanceChannels.set(url, [])
             }
         }))
-
+        this.lastUpdated = Date.now();
         console.log(`Loaded ${count.size} channels from ${data.justlogsInstances.length} instances`);
     }
 
@@ -79,8 +80,7 @@ module.exports = new class LogUtils {
     
         const start = performance.now();
 
-        let time = await this.redis.get(`logs:updated`);
-        if (Number(time) - this.getNow() > 86400) force = true;
+        if (force) await utils.loopLoadInstanceChannels();
         if (!error) {
             const resolvedInstances = await Promise
               .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
@@ -108,11 +108,6 @@ module.exports = new class LogUtils {
             }
         }
         
-        if (force) {
-            time = this.getNow();
-            this.redis.set(`logs:updated`, time);
-        }
-
         if (!error && !channelInstances.length) error = 'No channel logs found';
         else if (!error && !userInstances.length && user) error = 'No user logs found';
         const end = performance.now();
@@ -143,8 +138,8 @@ module.exports = new class LogUtils {
                 fullLink: channelLinks,
             },
             lastUpdated: {
-                unix: Number(time),
-                utc: new Date(time * 1000).toUTCString(),
+                unix: Number(this.lastUpdated),
+                utc: new Date(this.lastUpdated * 1000).toUTCString(),
             },
             elapsed: {
                 ms: Math.round((end - start) * 100) / 100,
@@ -173,7 +168,7 @@ module.exports = new class LogUtils {
         const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
         const userClean = user.replace('id:', '');
         
-        let statusCode = JSON.parse(await this.redis.get(cacheKey) ?? "null");
+        let statusCode = this.statusCodes.get(cacheKey);
         if (!statusCode || force) {
             statusCode = await got(`https://${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
@@ -181,7 +176,7 @@ module.exports = new class LogUtils {
                 timeout: 5000,
                 http2: true,
             }).then(res => res.statusCode)
-            this.redis.set(cacheKey, statusCode, 'EX', 86400);
+            this.statusCodes.set(cacheKey, statusCode);
         }
 
         const fullLink = pretty?.toLowerCase() === 'true' ?
