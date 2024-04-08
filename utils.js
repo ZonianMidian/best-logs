@@ -28,8 +28,8 @@ module.exports = new class LogUtils {
         let count = new Set();
         await Promise.allSettled(data.justlogsInstances.map(async (url) => {
             try {
-                if (data.alternateEndpoint[url]) url = data.alternateEndpoint[url]
-                const logsData = await got(`https://${url}/channels`, {
+                const channelURL = data.alternateEndpoint[url] ?? url;
+                const logsData = await got(`https://${channelURL}/channels`, {
                     headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                     https: {
                         rejectUnauthorized: false
@@ -53,6 +53,7 @@ module.exports = new class LogUtils {
                 this.instanceChannels.set(url, [])
             }
         }))
+        this.statusCodes.clear();
         this.lastUpdated = Date.now();
         console.log(`Loaded ${count.size} channels from ${data.justlogsInstances.length} instances`);
     }
@@ -152,7 +153,7 @@ module.exports = new class LogUtils {
         const channels = this.instanceChannels.get(url) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
         const channelClean = channel.replace('id:', '');
-
+        console.log(url, channels.length)
         if (!channels.length) return { Status: 0 };
         if (!channels.includes(channelClean)) return { Status: 3 };
 
