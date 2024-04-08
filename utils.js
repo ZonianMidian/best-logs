@@ -208,52 +208,44 @@ module.exports = new class LogUtils {
     };
     
     async getRecentMessages(channel, searchParams) {  
-        const 
-        instances = data.recentmessagesInstances,
-
-        start = performance.now(),
-
-        results = await Promise.allSettled(instances.map(async (instance) => {
+        const instances = data.recentmessagesInstances;
+        const start = performance.now();
+        let finalInstance = null;
+        let statusMessage = null;
+        let messagesData = [];
+        let errorCode = null;
+        let status = null;
+        let error = null;
+    
+        for (const instance of instances) {
             const { body, statusCode } = await this.fetchMessages(instance, channel, searchParams);
-
+    
             if (statusCode === 200 && body.messages.length) {
-                return {
-                    foundInstance: `https://${instance}`,
-                    messagesData: body.messages
-                }
-            } 
-            return {
-                statusMessage: body?.status_message ?? 'Internal Server Error',
-                errorCode: body?.error_code ?? 'internal_server_error',
-                error: body?.error ?? 'Internal Server Error',
-                status: statusCode ?? '500'
+                finalInstance = `https://${instance}`;
+                messagesData = body.messages;
+                status = '200';
+                break;
+            } else {
+                statusMessage = body?.status_message || 'Internal Server Error';
+                errorCode = body?.error_code || 'internal_server_error';
+                error = body?.error || 'Internal Server Error';
+                status = statusCode || '500';
             }
-        })).then(r => r.filter(res => res.status === 'fulfilled').map(data => data.value)),
+        }
 
-        end = performance.now(),
-
-        elapsed = {
+        const end = performance.now();
+        const elapsed = {
             ms: Math.round((end - start) * 100) / 100,
             s: Math.round((end - start) / 10) / 100,
         };
 
-        if (!results.length) return {
-             messages: [], 
-             status: 500, 
-             status_message: 'Internal Server Error', 
-             error: 'Internal Server Error', 
-             error_code: 'internal_server_error', 
-             elapsed 
-        };
+        console.log(`[${channel}] Recent messages - ${status} - ${elapsed.s}s`)
 
-        const instance = results.find(res => Boolean(res?.foundInstance));
-        if (instance) {
-            const { foundInstance, messagesData } = instance;
-            return { messages: messagesData, error: null, error_code: null, instance: foundInstance, elapsed }
-        } else {
-            const { statusMessage, errorCode, status, error } = results[0];
-            return { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
-        }
+        const response = finalInstance
+        ? { messages: messagesData, error: null, error_code: null, instance: finalInstance, elapsed }
+        : { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
+
+        return response;
     };
 
     async getInfo(user) {
