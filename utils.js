@@ -214,7 +214,7 @@ module.exports = new class LogUtils {
         start = performance.now(),
 
         results = await Promise.allSettled(instances.map(async (instance) => {
-            const { body, statusCode } = await fetchMessages(instance, channel, searchParams);
+            const { body, statusCode } = await this.fetchMessages(instance, channel, searchParams);
 
             if (statusCode === 200 && body.messages.length) {
                 return {
@@ -228,21 +228,30 @@ module.exports = new class LogUtils {
                 error: body?.error ?? 'Internal Server Error',
                 status: statusCode ?? '500'
             }
-        })).then(r => r.filter(res => res.status === 'fulfilled')),
+        })).then(r => r.filter(res => res.status === 'fulfilled').map(data => data.value)),
 
         end = performance.now(),
 
         elapsed = {
             ms: Math.round((end - start) * 100) / 100,
             s: Math.round((end - start) / 10) / 100,
-        },
+        };
 
-        instance = results.find(res => res.value?.foundInstance);
+        if (!results.length) return {
+             messages: [], 
+             status: 500, 
+             status_message: 'Internal Server Error', 
+             error: 'Internal Server Error', 
+             error_code: 'internal_server_error', 
+             elapsed 
+        };
+
+        const instance = results.find(res => Boolean(res?.foundInstance));
         if (instance) {
-            const { foundInstance, messagesData } = instance.value;
+            const { foundInstance, messagesData } = instance;
             return { messages: messagesData, error: null, error_code: null, instance: foundInstance, elapsed }
         } else {
-            const { statusMessage, errorCode, status, error } = results[0].value;
+            const { statusMessage, errorCode, status, error } = results[0];
             return { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
         }
     };
