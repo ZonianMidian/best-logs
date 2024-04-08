@@ -139,7 +139,7 @@ module.exports = new class LogUtils {
                 fullLink: channelLinks,
             },
             lastUpdated: {
-                unix: Number(this.lastUpdated),
+                unix: Number(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
             },
             elapsed: {
@@ -153,7 +153,7 @@ module.exports = new class LogUtils {
         const channels = this.instanceChannels.get(url) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
         const channelClean = channel.replace('id:', '');
-        console.log(url, channels.length)
+
         if (!channels.length) return { Status: 0 };
         if (!channels.includes(channelClean)) return { Status: 3 };
 
