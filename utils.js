@@ -10,7 +10,7 @@ module.exports = new class LogUtils {
     statusCodes = new Map();
 
     reloadInterval = 2 * 60 * 60 * 1000;
-    
+
     userIdRegex = /^id:(\d{1,})$/i;
 
     userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
@@ -38,7 +38,7 @@ module.exports = new class LogUtils {
                     timeout: 5000,
                     http2: true,
                 });
-                
+
                 if (!logsData.body?.channels?.length) throw new Error(`${url}: No channels found`);
                 const channels = [].concat(
                     logsData.body.channels.map((i) => i.name),
@@ -46,8 +46,9 @@ module.exports = new class LogUtils {
                 );
 
                 for (let id of logsData.body.channels.map((i) => i.userID)) count.add(id);
-
                 this.instanceChannels.set(url, channels);
+
+                console.log(`[${url}] Loaded ${channels.length} channels`);
             } catch (err) {
                 console.error(`Failed loading channels for ${url}: ${err.message}`);
                 this.instanceChannels.set(url, [])
@@ -64,7 +65,7 @@ module.exports = new class LogUtils {
         await this.loadInstanceChannels();
 
         loadLoop = setInterval(
-            this.loadInstanceChannels, 
+            this.loadInstanceChannels,
             this.reloadInterval
         );
     }
@@ -72,47 +73,51 @@ module.exports = new class LogUtils {
     async getInstance(channel, user, force, pretty, error) {
         force = force?.toLowerCase() === 'true';
         const instances = data.justlogsInstances;
-    
+
         let downSites = 0;
         let userLinks = [];
         let channelLinks = [];
         let userInstances = [];
         let channelInstances = [];
-    
+
         const start = performance.now();
 
         if (force) await this.loopLoadInstanceChannels();
         if (!error) {
             const resolvedInstances = await Promise
-              .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
-              .then(r => r.filter(res => res.status === 'fulfilled').map(data => data.value));
+                .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
+                .then(r => r.filter(res => res.status === 'fulfilled').map(data => data.value));
 
             for (const instance of resolvedInstances) {
                 const { Status, Link, Full, channelFull } = instance;
                 switch (Status) {
                     case 0:
+                        // The instance is probably down
                         downSites++;
                         continue;
                     case 1:
+                        // The instance is up and the user logs are available
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
                         userInstances.push(Link);
                         userLinks.push(Full);
                         continue;
                     case 2:
+                        // The instance is up but the user logs are not available
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
                         continue;
                     case 3:
+                        // The instance is up but the channel logs are not available
                         continue;
                 }
             }
         }
-        
+
         if (!error && !channelInstances.length) error = 'No channel logs found';
         else if (!error && !userInstances.length && user) error = 'No user logs found';
         const end = performance.now();
-    
+
         return {
             error: error,
             instancesInfo: {
@@ -151,7 +156,7 @@ module.exports = new class LogUtils {
 
     async getLogs(url, user, channel, force, pretty) {
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
-		const instanceURL = data.alternateEndpoint[url] ?? url;
+        const instanceURL = data.alternateEndpoint[url] ?? url;
         const channels = this.instanceChannels.get(url) ?? [];
         const channelClean = channel.replace('id:', '');
 
@@ -169,13 +174,13 @@ module.exports = new class LogUtils {
         const cacheKey = `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`;
         const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
         const userClean = user.replace('id:', '');
-        
+
         let statusCode = this.statusCodes.get(cacheKey);
         if (!statusCode || force) {
             statusCode = await got(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 https: {
-                        rejectUnauthorized: false
+                    rejectUnauthorized: false
                 },
                 timeout: 5000,
                 http2: true,
@@ -193,7 +198,7 @@ module.exports = new class LogUtils {
 
         console.log(`[${url}] Channel: ${channel} - User: ${user} - ${statusCode}`)
         return {
-            Status: ~~(statusCode/100) === 2 ? 1 : 2,
+            Status: ~~(statusCode / 100) === 2 ? 1 : 2,
             Link: `https://${url}`,
             Full: fullLink,
             channelFull: channelFull,
@@ -209,8 +214,8 @@ module.exports = new class LogUtils {
             searchParams,
         });
     };
-    
-    async getRecentMessages(channel, searchParams) {  
+
+    async getRecentMessages(channel, searchParams) {
         const instances = data.recentmessagesInstances;
         const start = performance.now();
         let finalInstance = null;
@@ -219,10 +224,10 @@ module.exports = new class LogUtils {
         let errorCode = null;
         let status = null;
         let error = null;
-    
+
         for (const instance of instances) {
             const { body, statusCode } = await this.fetchMessages(instance, channel, searchParams);
-    
+
             if (statusCode === 200 && body.messages.length) {
                 finalInstance = `https://${instance}`;
                 messagesData = body.messages;
@@ -245,8 +250,8 @@ module.exports = new class LogUtils {
         console.log(`[${channel}] Recent messages - ${status} - ${elapsed.s}s`)
 
         const response = finalInstance
-        ? { messages: messagesData, error: null, error_code: null, instance: finalInstance, elapsed }
-        : { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
+            ? { messages: messagesData, error: null, error_code: null, instance: finalInstance, elapsed }
+            : { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
 
         return response;
     };
@@ -259,7 +264,7 @@ module.exports = new class LogUtils {
             timeout: 5000,
         });
         if (statusCode < 200 || statusCode > 299) return null;
-    
+
         const displayName = body[0].displayName.toLowerCase() === user ? body[0].displayName : user;
         return { name: displayName, avatar: body[0].logo, id: body[0].id };
     };
