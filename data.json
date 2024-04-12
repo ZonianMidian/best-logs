@@ -1,5 +1,6 @@
 {
     "website": "https://justloginstances.zzls.xyz",
+    "port": 2028,
     "justlogsInstances": [
         "logs.spanix.team",
         "logs.nadeko.net",

@@ -2,7 +2,8 @@ const data = require('./data.json');
 const express = require('express');
 const utils = require('./utils');
 const app = express();
-const port = 2028;
+
+const port = data.port || 3000;
 
 app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
 app.use('/static', express.static(`${__dirname}/static`));
