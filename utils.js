@@ -24,7 +24,7 @@ module.exports = new class LogUtils {
         return Math.round(Date.now() / 1000)
     }
 
-    async loadInstanceChannels() {
+    async loadInstanceChannels(noLogs) {
         let count = new Set();
         await Promise.allSettled(data.justlogsInstances.map(async (url) => {
             try {
@@ -48,7 +48,7 @@ module.exports = new class LogUtils {
                 for (let id of logsData.body.channels.map((i) => i.userID)) count.add(id);
                 this.instanceChannels.set(url, channels);
 
-                console.log(`[${url}] Loaded ${channels.length} channels`);
+                if (!noLogs) console.log(`[${url}] Loaded ${channels.length} channels`);
             } catch (err) {
                 console.error(`Failed loading channels for ${url}: ${err.message}`);
                 this.instanceChannels.set(url, [])
@@ -59,10 +59,10 @@ module.exports = new class LogUtils {
         console.log(`Loaded ${count.size} channels from ${data.justlogsInstances.length} instances`);
     }
 
-    async loopLoadInstanceChannels() {
+    async loopLoadInstanceChannels(noLogs) {
         clearInterval(loadLoop)
 
-        await this.loadInstanceChannels();
+        await this.loadInstanceChannels(noLogs);
 
         loadLoop = setInterval(
             this.loadInstanceChannels,
@@ -82,7 +82,7 @@ module.exports = new class LogUtils {
 
         const start = performance.now();
 
-        if (force) await this.loopLoadInstanceChannels();
+        if (force) await this.loopLoadInstanceChannels(true);
         if (!error) {
             const resolvedInstances = await Promise
                 .allSettled(instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)))
