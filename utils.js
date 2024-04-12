@@ -150,8 +150,9 @@ module.exports = new class LogUtils {
     };
 
     async getLogs(url, user, channel, force, pretty) {
-        const channels = this.instanceChannels.get(url) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
+		const instanceURL = data.alternateEndpoint[url] ?? url;
+        const channels = this.instanceChannels.get(url) ?? [];
         const channelClean = channel.replace('id:', '');
 
         if (!channels.length) return { Status: 0 };
@@ -171,9 +172,11 @@ module.exports = new class LogUtils {
         
         let statusCode = this.statusCodes.get(cacheKey);
         if (!statusCode || force) {
-            statusCode = await got(`https://${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
+            statusCode = await got(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                throwHttpErrors: false,
+                https: {
+                        rejectUnauthorized: false
+                },
                 timeout: 5000,
                 http2: true,
             }).then(res => res.statusCode)
