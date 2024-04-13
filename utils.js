@@ -119,7 +119,8 @@ module.exports = new class LogUtils {
             }
         }
 
-        if (!error && !channelInstances.length) error = 'No channel logs found';
+        if (!error && optOuts.length && !channelInstances.length) error = 'User or channel has opted out';
+        else if (!error && !channelInstances.length) error = 'No channel logs found';
         else if (!error && !userInstances.length && user) error = 'No user logs found';
         const end = performance.now();
 
@@ -151,7 +152,7 @@ module.exports = new class LogUtils {
             optedOut: {
                 count: optOuts.length,
                 instances: optOuts,
-            },              
+            },
             lastUpdated: {
                 unix: ~~(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
