@@ -75,6 +75,7 @@ module.exports = new class LogUtils {
         const instances = data.justlogsInstances;
 
         let downSites = 0;
+        let optOuts = [];
         let userLinks = [];
         let channelLinks = [];
         let userInstances = [];
@@ -110,6 +111,10 @@ module.exports = new class LogUtils {
                     case 3:
                         // The instance is up but the channel logs are not available
                         continue;
+                    case 4:
+                        // The instance is up but the user or channel logs are opted out
+                        optOuts.push(Link);
+                        continue;
                 }
             }
         }
@@ -143,6 +148,10 @@ module.exports = new class LogUtils {
                 instances: channelInstances,
                 fullLink: channelLinks,
             },
+            optedOut: {
+                count: optOuts.length,
+                instances: optOuts,
+            },              
             lastUpdated: {
                 unix: ~~(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
@@ -184,7 +193,8 @@ module.exports = new class LogUtils {
                 },
                 timeout: 5000,
                 http2: true,
-            }).then(res => res.statusCode)
+            }).then(res => res.statusCode).catch(err => err.response.statusCode);
+
             this.statusCodes.set(cacheKey, statusCode);
         }
 
@@ -197,11 +207,17 @@ module.exports = new class LogUtils {
             `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
 
         console.log(`[${url}] Channel: ${channel} - User: ${user} - ${statusCode}`)
+
+        if (statusCode === 403) return {
+            Status: 4,
+            Link: `https://${url}`
+        };
+
         return {
             Status: ~~(statusCode / 100) === 2 ? 1 : 2,
             Link: `https://${url}`,
             Full: fullLink,
-            channelFull: channelFull,
+            channelFull: channelFull
         };
     };
 
