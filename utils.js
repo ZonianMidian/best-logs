@@ -75,6 +75,7 @@ module.exports = new class LogUtils {
         const instances = data.justlogsInstances;
 
         let downSites = 0;
+        let optOuts = [];
         let userLinks = [];
         let channelLinks = [];
         let userInstances = [];
@@ -89,7 +90,7 @@ module.exports = new class LogUtils {
                 .then(r => r.filter(res => res.status === 'fulfilled').map(data => data.value));
 
             for (const instance of resolvedInstances) {
-                const { Status, Link, Full, channelFull } = instance;
+                const { Status, Link, Full, channelFull, optedOut } = instance;
                 switch (Status) {
                     case 0:
                         // The instance is probably down
@@ -106,6 +107,7 @@ module.exports = new class LogUtils {
                         // The instance is up but the user logs are not available
                         channelLinks.push(channelFull);
                         channelInstances.push(Link);
+                        if (optedOut) optOuts.push(Link);
                         continue;
                     case 3:
                         // The instance is up but the channel logs are not available
@@ -143,6 +145,10 @@ module.exports = new class LogUtils {
                 instances: channelInstances,
                 fullLink: channelLinks,
             },
+            optedOut: {
+                count: optOutCount.length,
+                instances: optOuts,
+            },              
             lastUpdated: {
                 unix: ~~(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
@@ -195,6 +201,13 @@ module.exports = new class LogUtils {
         const channelFull = pretty?.toLowerCase() === 'false' ?
             `https://${url}/?channel=${channel}` :
             `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
+
+        if (statusCode === 403) return { 
+            Status: 4, 
+            Link: `https://${url}`,
+            channelFull,
+            optedOut: true
+        };
 
         console.log(`[${url}] Channel: ${channel} - User: ${user} - ${statusCode}`)
         return {
