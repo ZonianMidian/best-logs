@@ -71,8 +71,7 @@ app.get('/api/:channel', async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
     let error = null;
 
-    if (!utils.userChanRegex.test(channel))
-        error = `Invalid channel or channel ID: ${channel}`;
+    if (!utils.userChanRegex.test(channel)) error = `Invalid channel or channel ID: ${channel}`;
 
     const isPlain = plain?.toLowerCase() === 'true';
     try {
@@ -91,8 +90,7 @@ app.get('/api/:channel/:user', async (req, res) => {
     const user = utils.formatUsername(req.params.user);
     let error = null;
 
-    if (!utils.userChanRegex.test(channel))
-        error = `Invalid channel or channel ID: ${channel}`;
+    if (!utils.userChanRegex.test(channel)) error = `Invalid channel or channel ID: ${channel}`;
     if (!utils.userChanRegex.test(user)) error = `Invalid username or user ID: ${user}`;
 
     const isPlain = plain?.toLowerCase() === 'true';
