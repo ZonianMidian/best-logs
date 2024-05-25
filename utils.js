@@ -1,32 +1,23 @@
-const data = require('./data.json');
-const got = require('got');
+import data from './data.json' assert { type: 'json' };
+import got from 'got';
 
-let loadLoop;
-module.exports = new (class LogUtils {
+export class LogUtils {
+    loadLoop = null;
     lastUpdated = Date.now();
-
     instanceChannels = new Map();
-
     statusCodes = new Map();
-
     lengthData = new Map();
-
     reloadInterval = 2 * 60 * 60 * 1000;
-
     userIdRegex = /^id:(\d{1,})$/i;
-
     userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
 
     formatUsername(username) {
         return decodeURIComponent(username.replace(/[@#,]/g, '').toLowerCase());
     }
 
-    getNow() {
-        return Math.round(Date.now() / 1000);
-    }
-
     async loadInstanceChannels(noLogs) {
         let count = new Set();
+
         await Promise.allSettled(
             data.justlogsInstances.map(async (url) => {
                 try {
@@ -42,38 +33,47 @@ module.exports = new (class LogUtils {
                     });
 
                     if (!logsData.body?.channels?.length) throw new Error(`${url}: No channels found`);
+
                     const channels = [].concat(
                         logsData.body.channels.map((i) => i.name),
                         logsData.body.channels.map((i) => i.userID),
                     );
 
-                    for (let id of logsData.body.channels.map((i) => i.userID)) count.add(id);
+                    for (const channel of logsData.body.channels) {
+                        count.add(channel.userID);
+                    }
+
                     this.instanceChannels.set(url, channels);
 
-                    if (!noLogs) console.log(`[${url}] Loaded ${channels.length} channels`);
+                    if (!noLogs) {
+                        console.log(`[${url}] Loaded ${channels.length} channels`);
+                    }
                 } catch (err) {
                     console.error(`Failed loading channels for ${url}: ${err.message}`);
                     this.instanceChannels.set(url, []);
                 }
             }),
         );
-        this.statusCodes.clear();
+
         this.lastUpdated = Date.now();
+
+        this.statusCodes.clear();
         console.log(`Loaded ${count.size} channels from ${data.justlogsInstances.length} instances`);
     }
 
     async loopLoadInstanceChannels(noLogs) {
-        clearInterval(loadLoop);
+        clearInterval(this.loadLoop);
 
         await this.loadInstanceChannels(noLogs);
 
-        loadLoop = setInterval(this.loadInstanceChannels, this.reloadInterval);
+        this.loadLoop = setInterval(this.loadInstanceChannels, this.reloadInterval);
     }
 
     async getInstance(channel, user, force, pretty, error) {
         force = force?.toLowerCase() === 'true';
-        const instances = data.justlogsInstances;
 
+        const instances = data.justlogsInstances;
+        const start = performance.now();
         let downSites = 0;
         let optOuts = [];
         let userLinks = [];
@@ -83,16 +83,19 @@ module.exports = new (class LogUtils {
         let userInstancesWithLength = [];
         let channelInstancesWithLength = [];
 
-        const start = performance.now();
+        if (force) {
+            await this.loopLoadInstanceChannels(true);
+        }
 
-        if (force) await this.loopLoadInstanceChannels(true);
         if (!error) {
-            const resolvedInstances = await Promise.allSettled(
-                instances.map(async (inst) => this.getLogs(inst, user, channel, force, pretty)),
-            ).then((r) => r.filter((res) => res.status === 'fulfilled').map((data) => data.value));
+            const results = await Promise.allSettled(
+                instances.map((i) => this.getLogs(i, user, channel, force, pretty)),
+            );
+            const resolvedInstances = results.filter(({ status }) => status === 'fulfilled').map(({ value }) => value);
 
             for (const instance of resolvedInstances) {
                 const { Status, Link, Full, channelFull, length } = instance;
+
                 switch (Status) {
                     case 0:
                         // The instance is probably down
@@ -130,27 +133,28 @@ module.exports = new (class LogUtils {
                 userInstances.push(instance.Link);
                 userLinks.push(instance.Full);
             }
+
+            if (optOuts.length && !channelInstances.length) error = 'User or channel has opted out';
+            else if (!channelInstances.length) error = 'No channel logs found';
+            else if (!userInstances.length && user) error = 'No user logs found';
         }
 
-        if (!error && optOuts.length && !channelInstances.length) error = 'User or channel has opted out';
-        else if (!error && !channelInstances.length) error = 'No channel logs found';
-        else if (!error && !userInstances.length && user) error = 'No user logs found';
         const end = performance.now();
 
         return {
-            error: error,
+            error,
             instancesInfo: {
                 count: instances.length,
                 down: downSites,
             },
             request: {
-                user: user,
-                channel: channel,
+                user,
+                channel,
                 forced: force,
             },
             available: {
-                user: userInstances.length > 0 ? true : false,
-                channel: channelInstances.length > 0 ? true : false,
+                user: userInstances.length > 0,
+                channel: channelInstances.length > 0,
             },
             userLogs: {
                 count: userInstances.length,
@@ -178,6 +182,8 @@ module.exports = new (class LogUtils {
     }
 
     async getLogs(url, user, channel, force, pretty) {
+        pretty = pretty?.toLowerCase() === 'true';
+
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
         const instanceURL = data.alternateEndpoint[url] ?? url;
         const channels = this.instanceChannels.get(url) ?? [];
@@ -189,6 +195,7 @@ module.exports = new (class LogUtils {
         const lengthCacheKey = `logs:length:${url}:${channel.replace('id:', 'id-')}`;
 
         let length = this.lengthData.get(lengthCacheKey);
+
         if (!length || force) {
             length = await got(`https://${instanceURL}/list?${channelPath}=${channelClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
@@ -200,8 +207,10 @@ module.exports = new (class LogUtils {
             })
                 .then((response) => {
                     const data = JSON.parse(response.body);
-                    const availableLogsLength = data.availableLogs ? data.availableLogs.length : 0;
+                    const availableLogsLength = data?.availableLogs?.length ?? 0;
+
                     this.lengthData.set(lengthCacheKey, availableLogsLength);
+
                     return availableLogsLength;
                 })
                 .catch((err) => {
@@ -218,10 +227,9 @@ module.exports = new (class LogUtils {
             return {
                 Status: 2,
                 Link: `https://${url}`,
-                channelFull:
-                    pretty?.toLowerCase() === 'false'
-                        ? `https://${url}/?channel=${channel}`
-                        : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`,
+                channelFull: pretty
+                    ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`
+                    : `https://${url}/?channel=${channel}`,
                 length,
             };
         }
@@ -229,8 +237,8 @@ module.exports = new (class LogUtils {
         const instanceCacheKey = `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`;
         const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
         const userClean = user.replace('id:', '');
-
         let statusCode = this.statusCodes.get(instanceCacheKey);
+
         if (!statusCode || force) {
             statusCode = await got(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
@@ -246,30 +254,29 @@ module.exports = new (class LogUtils {
             this.statusCodes.set(instanceCacheKey, statusCode);
         }
 
-        const fullLink =
-            pretty?.toLowerCase() === 'true'
-                ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`
-                : `https://${url}/?channel=${channel}&username=${user}`;
+        const fullLink = pretty
+            ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`
+            : `https://${url}/?channel=${channel}&username=${user}`;
 
-        const channelFull =
-            pretty?.toLowerCase() === 'false'
-                ? `https://${url}/?channel=${channel}`
-                : `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`;
+        const channelFull = pretty
+            ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`
+            : `https://${url}/?channel=${channel}`;
 
         console.log(`[${url}] Channel: ${channel} - User: ${user} | ${statusCode} - ${length}`);
 
-        if (statusCode === 403)
+        if (statusCode === 403) {
             return {
                 Status: 4,
                 Link: `https://${url}`,
             };
+        }
 
         return {
+            length,
+            channelFull,
             Status: ~~(statusCode / 100) === 2 ? 1 : 2,
             Link: `https://${url}`,
             Full: fullLink,
-            channelFull: channelFull,
-            length,
         };
     }
 
@@ -286,19 +293,19 @@ module.exports = new (class LogUtils {
     async getRecentMessages(channel, searchParams) {
         const instances = data.recentmessagesInstances;
         const start = performance.now();
-        let finalInstance = null;
+        let messages = [];
+        let instance = null;
         let statusMessage = null;
-        let messagesData = [];
         let errorCode = null;
         let status = null;
         let error = null;
 
-        for (const instance of instances) {
-            const { body, statusCode } = await this.fetchMessages(instance, channel, searchParams);
+        for (const entry of instances) {
+            const { body, statusCode } = await this.fetchMessages(entry, channel, searchParams);
 
             if (statusCode === 200 && body.messages.length) {
-                finalInstance = `https://${instance}`;
-                messagesData = body.messages;
+                instance = `https://${entry}`;
+                messages = body.messages;
                 status = '200';
                 break;
             } else {
@@ -317,11 +324,15 @@ module.exports = new (class LogUtils {
 
         console.log(`[${channel}] Recent messages - ${status} - ${elapsed.s}s`);
 
-        const response = finalInstance
-            ? { messages: messagesData, error: null, error_code: null, instance: finalInstance, elapsed }
-            : { messages: [], status, status_message: statusMessage, error, error_code: errorCode, elapsed };
-
-        return response;
+        return {
+            error_code: errorCode,
+            status_message: statusMessage,
+            messages,
+            status,
+            error,
+            elapsed,
+            instance,
+        };
     }
 
     async getInfo(user) {
@@ -331,9 +342,12 @@ module.exports = new (class LogUtils {
             responseType: 'json',
             timeout: 5000,
         });
+
         if (statusCode < 200 || statusCode > 299) return null;
 
-        const displayName = body[0].displayName.toLowerCase() === user ? body[0].displayName : user;
-        return { name: displayName, avatar: body[0].logo, id: body[0].id };
+        const { displayName, logo: avatar, id } = body?.[0] || {};
+        const name = displayName.toLowerCase() === user ? displayName : user;
+
+        return { name, avatar, id };
     }
-})();
+}

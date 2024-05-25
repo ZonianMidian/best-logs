@@ -2,6 +2,7 @@
     "name": "best-logs",
     "version": "2.0.0",
     "main": "index.js",
+    "type": "module",
     "dependencies": {
         "ejs": "^3.1.9",
         "express": "^4.18.2",
