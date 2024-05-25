@@ -12,9 +12,10 @@
         "logs.lucas19961.de",
         "logs.jimmyboy.dev",
         "logs.flake.sh",
-        "logs.potat.app"
+        "logs.potat.app",
+        "logs.supa.codes"
     ],
-    "alternateEndpoint":{
+    "alternateEndpoint": {
         "logs.lucas19961.de": "logsback.susgee.dev",
         "harambelogs.pl": "logs.zneix.eu"
     },
