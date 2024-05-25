@@ -195,7 +195,7 @@ module.exports = new (class LogUtils {
                 https: {
                     rejectUnauthorized: false,
                 },
-                timeout: 5000,
+                timeout: 1000,
                 http2: true,
             })
                 .then((response) => {
@@ -204,7 +204,8 @@ module.exports = new (class LogUtils {
                     this.lengthData.set(lengthCacheKey, availableLogsLength);
                     return availableLogsLength;
                 })
-                .catch((error) => {
+                .catch((err) => {
+                    console.error(`Failed loading ${channelClean} length in ${instanceURL}: ${err.message}`);
                     return 0;
                 });
 
