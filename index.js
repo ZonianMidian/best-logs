@@ -1,11 +1,14 @@
-import { LogUtils } from './utils.js';
-import data from './data.json' assert { type: 'json' };
 import express from 'express';
+import data from './data.json' with { type: 'json' };
+import { LogUtils } from './utils.js';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const app = express();
 const port = data.port || 3000;
 const utils = new LogUtils();
-const __dirname = new URL('.', import.meta.url).pathname;
 
 app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
 app.use('/static', express.static(`${__dirname}/static`));

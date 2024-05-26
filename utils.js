@@ -1,4 +1,4 @@
-import data from './data.json' assert { type: 'json' };
+import data from './data.json' with { type: 'json' };
 import got from 'got';
 
 export class LogUtils {
@@ -16,7 +16,7 @@ export class LogUtils {
     }
 
     async loadInstanceChannels(noLogs) {
-        let count = new Set();
+        let channels = new Set();
 
         await Promise.allSettled(
             data.justlogsInstances.map(async (url) => {
@@ -34,19 +34,16 @@ export class LogUtils {
 
                     if (!logsData.body?.channels?.length) throw new Error(`${url}: No channels found`);
 
-                    const channels = [].concat(
-                        logsData.body.channels.map((i) => i.name),
-                        logsData.body.channels.map((i) => i.userID),
-                    );
+                    const currentInstanceChannels = logsData.body.channels.flatMap((i) => [i.name, i.userID]);
 
                     for (const channel of logsData.body.channels) {
-                        count.add(channel.userID);
+                        channels.add(channel.userID);
                     }
 
-                    this.instanceChannels.set(url, channels);
+                    this.instanceChannels.set(url, currentInstanceChannels);
 
                     if (!noLogs) {
-                        console.log(`[${url}] Loaded ${channels.length} channels`);
+                        console.log(`[${url}] Loaded ${currentInstanceChannels.length} channels`);
                     }
                 } catch (err) {
                     console.error(`Failed loading channels for ${url}: ${err.message}`);
@@ -58,7 +55,7 @@ export class LogUtils {
         this.lastUpdated = Date.now();
 
         this.statusCodes.clear();
-        console.log(`Loaded ${count.size} channels from ${data.justlogsInstances.length} instances`);
+        console.log(`Loaded ${channels.size} channels from ${data.justlogsInstances.length} instances`);
     }
 
     async loopLoadInstanceChannels(noLogs) {
