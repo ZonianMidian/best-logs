@@ -68,7 +68,7 @@ export class LogUtils {
         this.statusCodes.clear();
 
         console.log(
-            `Loaded ${this.uniqueChannels.size} unique channels from ${data.justlogsInstances.length} instances`,
+            `- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${data.justlogsInstances.length} instances`,
         );
     }
 
@@ -131,7 +131,7 @@ export class LogUtils {
                 }
             }
 
-            // Sort the instances with lngth
+            // Sort the instances by length
             channelInstancesWithLength.sort((a, b) => b.length - a.length);
             userInstancesWithLength.sort((a, b) => b.length - a.length);
 
@@ -151,6 +151,12 @@ export class LogUtils {
         }
 
         const end = performance.now();
+        const elapsed = {
+            ms: Math.round((end - start) * 100) / 100,
+            s: Math.round((end - start) / 10) / 100,
+        };
+
+        console.log(`- [Logs] Channel: ${channel}${user ? ` - User: ${user}` : ''} | ${elapsed.s}s`);
 
         return {
             error,
@@ -185,10 +191,7 @@ export class LogUtils {
                 unix: ~~(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
             },
-            elapsed: {
-                ms: Math.round((end - start) * 100) / 100,
-                s: Math.round((end - start) / 10) / 100,
-            },
+            elapsed
         };
     }
 
@@ -321,12 +324,16 @@ export class LogUtils {
                 instance = `https://${entry}`;
                 messages = body.messages;
                 status = '200';
+
+                console.log(`[${entry}] Channel: ${channel} | ${status} - ${messages.length} messages`)
                 break;
             } else {
                 statusMessage = body?.status_message || 'Internal Server Error';
                 errorCode = body?.error_code || 'internal_server_error';
                 error = body?.error || 'Internal Server Error';
                 status = statusCode || '500';
+
+                console.error(`[${entry}] Channel: ${channel} | ${status} - ${statusMessage}`);
             }
         }
 
@@ -336,7 +343,7 @@ export class LogUtils {
             s: Math.round((end - start) / 10) / 100,
         };
 
-        console.log(`[${channel}] Recent messages - ${status} - ${elapsed.s}s`);
+        console.log(`- [RecentMessages] Channel: ${channel} | ${status} - ${messages.length} - ${elapsed.s}s`);
 
         return {
             error_code: errorCode,
