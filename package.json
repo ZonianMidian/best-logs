@@ -10,7 +10,8 @@
         "got": "^11.8.6"
     },
     "scripts": {
-        "start": "node index.js"
+        "start": "node --no-warnings index.js",
+        "dev": "node --trace-warnings index.js"
     },
     "author": "ZonianMidian",
     "description": "API and website that provides the best logs of a user for a Twitch channel",
