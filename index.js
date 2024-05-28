@@ -141,14 +141,39 @@ app.get('/api/:channel/:user', async (req, res) => {
     }
 });
 
+const checkInstances = (obj) => {
+    let count = 0;
+    let down = 0;
+
+    for (let key in obj) {
+        count++;
+
+        if (Array.isArray(obj[key]) && obj[key].length === 0) {
+            down++;
+        }
+    }
+
+    return {
+        count,
+        down,
+    };
+};
+
 app.get('/instances', async (req, res) => {
     const instances = Object.fromEntries(utils.instanceChannels);
-    res.send(instances);
+    res.send({
+        stats: checkInstances(instances),
+        instances: instances,
+    });
 });
 
 app.get('/channels', async (req, res) => {
+    const instances = Object.fromEntries(utils.instanceChannels);
     const channels = Array.from(utils.uniqueChannels);
-    res.send({ channels });
+    res.send({
+        stats: checkInstances(instances),
+        channels: channels,
+    });
 });
 
 const extractValue = (input, regex) => {
@@ -158,7 +183,7 @@ const extractValue = (input, regex) => {
         return match[1];
     }
     return null;
-}
+};
 
 const logsApi = async (req, res) => {
     const channel = extractValue(req.url, utils.channelLinkRegex);
@@ -189,12 +214,11 @@ const logsApi = async (req, res) => {
             res.status(statusCode);
             return res.send(body);
         }
-
     } catch (err) {
         res.status(500);
         return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
     }
-}
+};
 
 app.get('/list', logsApi);
 app.get('/channel/:endpoint(*)', logsApi);

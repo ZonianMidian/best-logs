@@ -150,17 +150,14 @@ export class Utils {
                 userLinks.push(instance.Full);
             }
 
-
             // Error messages and status codes
             if (optOuts.length && !channelInstances.length) {
                 error = 'User or channel has opted out';
                 status = 403;
-            }
-            else if (!channelInstances.length) {
+            } else if (!channelInstances.length) {
                 error = 'No channel logs found';
                 status = 404;
-            }
-            else if (!userInstances.length && user) {
+            } else if (!userInstances.length && user) {
                 error = 'No user logs found';
                 status = 404;
             }
