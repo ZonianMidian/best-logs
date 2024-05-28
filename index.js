@@ -137,7 +137,7 @@ app.get('/api/:channel/:user', async (req, res) => {
     }
 });
 
-app.get('/rm/:channel', async (req, res) => {
+const getRecentMessages = async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
 
     try {
@@ -147,11 +147,11 @@ app.get('/rm/:channel', async (req, res) => {
     } catch (err) {
         return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
-});
+};
 
-app.get('/recent-messages/:channel', function (req, res) {
-    res.redirect(`/rm/${req.params.channel}`);
-});
+app.get('/rm/:channel', getRecentMessages);
+app.get('/recent-messages/:channel', getRecentMessages);
+app.get('/api/v2/recent-messages/:channel', getRecentMessages);
 
 app.use(function (req, res, next) {
     const err = new Error('Not found');
