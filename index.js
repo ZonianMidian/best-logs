@@ -3,6 +3,7 @@ import { Utils } from './utils.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express from 'express';
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,6 +16,7 @@ app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
 app.use('/static', express.static(`${__dirname}/static`));
 app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
+app.use(cors());
 
 app.get('/', (req, res) => {
     const instances = data.justlogsInstances;
