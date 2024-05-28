@@ -39,11 +39,11 @@ export class LogUtils {
                             rejectUnauthorized: false,
                         },
                         responseType: 'json',
-                        timeout: 5000,
+                        timeout: 10000,
                         http2: true,
                     });
 
-                    if (!logsData.body?.channels?.length) throw new Error(`${url}: No channels found`);
+                    if (!logsData.body?.channels?.length) throw new Error(`No channels found`);
 
                     const currentInstanceChannels = logsData.body.channels.flatMap((i) => [i.name, i.userID]);
 
@@ -57,7 +57,7 @@ export class LogUtils {
                         console.log(`[${url}] Loaded ${currentInstanceChannels.length} channels`);
                     }
                 } catch (err) {
-                    console.error(`Failed loading channels for ${url}: ${err.message}`);
+                    console.error(`[${url}] Failed loading channels: ${err.message}`);
                     this.instanceChannels.set(url, []);
                 }
             }),
@@ -210,7 +210,7 @@ export class LogUtils {
                 https: {
                     rejectUnauthorized: false,
                 },
-                timeout: 1000,
+                timeout: 5000,
                 http2: true,
             })
                 .then((response) => {
@@ -222,7 +222,7 @@ export class LogUtils {
                     return availableLogsLength;
                 })
                 .catch((err) => {
-                    console.error(`Failed loading ${channelClean} length in ${instanceURL}: ${err.message}`);
+                    console.error(`[${instanceURL}] Failed loading ${channelClean} length: ${err.message}`);
                     return 0;
                 });
 
