@@ -15,6 +15,17 @@ export class LogUtils {
         return decodeURIComponent(username.replace(/[@#,]/g, '').toLowerCase());
     }
 
+    getNow() {
+        return Math.round(Date.now() / 1000)
+    }
+
+    async request(url, options) {
+        return Promise.race([
+            got(url, options),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), options.timeout))
+        ])
+    }
+
     async loadInstanceChannels(noLogs) {
         let channels = new Set();
 
@@ -22,7 +33,7 @@ export class LogUtils {
             data.justlogsInstances.map(async (url) => {
                 try {
                     const channelURL = data.alternateEndpoint[url] ?? url;
-                    const logsData = await got(`https://${channelURL}/channels`, {
+                    const logsData = await this.request(`https://${channelURL}/channels`, {
                         headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                         https: {
                             rejectUnauthorized: false,
@@ -237,7 +248,7 @@ export class LogUtils {
         let statusCode = this.statusCodes.get(instanceCacheKey);
 
         if (!statusCode || force) {
-            statusCode = await got(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
+            statusCode = await this.request(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 https: {
                     rejectUnauthorized: false,
@@ -278,7 +289,7 @@ export class LogUtils {
     }
 
     async fetchMessages(instance, channel, searchParams) {
-        return got(`https://${instance}/api/v2/recent-messages/${channel}`, {
+        return this.request(`https://${instance}/api/v2/recent-messages/${channel}`, {
             headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             throwHttpErrors: false,
             responseType: 'json',
@@ -333,7 +344,7 @@ export class LogUtils {
     }
 
     async getInfo(user) {
-        const { body, statusCode } = await got(`https://api.ivr.fi/v2/twitch/user?login=${user}`, {
+        const { body, statusCode } = await this.request(`https://api.ivr.fi/v2/twitch/user?login=${user}`, {
             headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             throwHttpErrors: false,
             responseType: 'json',
