@@ -293,6 +293,7 @@ export class LogUtils {
             headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
             throwHttpErrors: false,
             responseType: 'json',
+            timeout: 5000,
             searchParams,
         });
     }
