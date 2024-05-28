@@ -1,7 +1,7 @@
 import data from './data.json' with { type: 'json' };
 import got from 'got';
 
-export class LogUtils {
+export class Utils {
     userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
     userIdRegex = /^id:(\d{1,})$/i;
 
@@ -191,7 +191,7 @@ export class LogUtils {
                 unix: ~~(this.lastUpdated / 1000),
                 utc: new Date(this.lastUpdated * 1000).toUTCString(),
             },
-            elapsed
+            elapsed,
         };
     }
 
@@ -325,7 +325,7 @@ export class LogUtils {
                 messages = body.messages;
                 status = '200';
 
-                console.log(`[${entry}] Channel: ${channel} | ${status} - ${messages.length} messages`)
+                console.log(`[${entry}] Channel: ${channel} | ${status} - ${messages.length} messages`);
                 break;
             } else {
                 statusMessage = body?.status_message || 'Internal Server Error';

@@ -1,13 +1,14 @@
 import data from './data.json' with { type: 'json' };
-import { LogUtils } from './utils.js';
+import { Utils } from './utils.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express from 'express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
 const port = data.port || 3000;
-const utils = new LogUtils();
+const utils = new Utils();
 const app = express();
 
 app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
@@ -135,6 +136,16 @@ app.get('/api/:channel/:user', async (req, res) => {
 
         return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
+});
+
+app.get('/instances', async (req, res) => {
+    const instances = Object.fromEntries(utils.instanceChannels);
+    res.send(instances);
+});
+
+app.get('/channels', async (req, res) => {
+    const channels = Array.from(utils.uniqueChannels);
+    res.send({ channels });
 });
 
 const getRecentMessages = async (req, res) => {
