@@ -2,33 +2,34 @@ import data from './data.json' with { type: 'json' };
 import got from 'got';
 
 export class LogUtils {
-    loadLoop = null;
-    lastUpdated = Date.now();
+    userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
+    userIdRegex = /^id:(\d{1,})$/i;
+
     instanceChannels = new Map();
+    uniqueChannels = new Set();
     statusCodes = new Map();
     lengthData = new Map();
+
     reloadInterval = 2 * 60 * 60 * 1000;
-    userIdRegex = /^id:(\d{1,})$/i;
-    userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
+    lastUpdated = Date.now();
+    loadLoop = null;
 
     formatUsername(username) {
         return decodeURIComponent(username.replace(/[@#,]/g, '').toLowerCase());
     }
 
     getNow() {
-        return Math.round(Date.now() / 1000)
+        return Math.round(Date.now() / 1000);
     }
 
     async request(url, options) {
         return Promise.race([
             got(url, options),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), options.timeout))
-        ])
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), options.timeout)),
+        ]);
     }
 
     async loadInstanceChannels(noLogs) {
-        let channels = new Set();
-
         await Promise.allSettled(
             data.justlogsInstances.map(async (url) => {
                 try {
@@ -45,10 +46,10 @@ export class LogUtils {
 
                     if (!logsData.body?.channels?.length) throw new Error(`No channels found`);
 
-                    const currentInstanceChannels = logsData.body.channels.flatMap((i) => [i.name, i.userID]);
+                    const currentInstanceChannels = logsData.body.channels;
 
                     for (const channel of logsData.body.channels) {
-                        channels.add(channel.userID);
+                        this.uniqueChannels.add(channel);
                     }
 
                     this.instanceChannels.set(url, currentInstanceChannels);
@@ -64,9 +65,11 @@ export class LogUtils {
         );
 
         this.lastUpdated = Date.now();
-
         this.statusCodes.clear();
-        console.log(`Loaded ${channels.size} channels from ${data.justlogsInstances.length} instances`);
+
+        console.log(
+            `Loaded ${this.uniqueChannels.size} unique channels from ${data.justlogsInstances.length} instances`,
+        );
     }
 
     async loopLoadInstanceChannels(noLogs) {
@@ -192,9 +195,9 @@ export class LogUtils {
     async getLogs(url, user, channel, force, pretty) {
         pretty = pretty?.toLowerCase() === 'true';
 
+        const channels = this.instanceChannels.get(url)?.flatMap((i) => [i.name, i.userID]) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
         const instanceURL = data.alternateEndpoint[url] ?? url;
-        const channels = this.instanceChannels.get(url) ?? [];
         const channelClean = channel.replace('id:', '');
 
         if (!channels.length) return { Status: 0 };
@@ -248,14 +251,17 @@ export class LogUtils {
         let statusCode = this.statusCodes.get(instanceCacheKey);
 
         if (!statusCode || force) {
-            statusCode = await this.request(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
-                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                https: {
-                    rejectUnauthorized: false,
+            statusCode = await this.request(
+                `https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`,
+                {
+                    headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                    https: {
+                        rejectUnauthorized: false,
+                    },
+                    timeout: 5000,
+                    http2: true,
                 },
-                timeout: 5000,
-                http2: true,
-            })
+            )
                 .then((res) => res.statusCode)
                 .catch((err) => err.response.statusCode);
 
