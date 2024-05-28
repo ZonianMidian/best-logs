@@ -10,7 +10,7 @@ export class Utils {
     statusCodes = new Map();
     lengthData = new Map();
 
-    reloadInterval = 2 * 60 * 60 * 1000;
+    reloadInterval = 1 * 60 * 60 * 1000;
     lastUpdated = Date.now();
     loadLoop = null;
 
