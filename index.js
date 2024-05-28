@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express from 'express';
 import cors from 'cors';
+import got from 'got';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,7 +44,7 @@ app.get('/rdr/:channel', async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
 
     if (!utils.userChanRegex.test(channel)) {
-        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '' });
+        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '400' });
     }
 
     const { force, pretty } = req.query;
@@ -57,7 +58,7 @@ app.get('/rdr/:channel', async (req, res) => {
 
         return res.redirect(instance?.channelLogs?.fullLink[0]);
     } catch (err) {
-        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '' });
+        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '500' });
     }
 });
 
@@ -67,11 +68,11 @@ app.get('/rdr/:channel/:user', async (req, res) => {
     const { force, pretty } = req.query;
 
     if (!utils.userChanRegex.test(channel)) {
-        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '' });
+        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '400' });
     }
 
     if (!utils.userChanRegex.test(user)) {
-        return res.render('error', { error: `Invalid username or user ID: ${user}`, code: '' });
+        return res.render('error', { error: `Invalid username or user ID: ${user}`, code: '400' });
     }
 
     try {
@@ -83,7 +84,7 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 
         return res.redirect(instance?.userLogs?.fullLink[0]);
     } catch (err) {
-        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '' });
+        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '500' });
     }
 });
 
@@ -150,6 +151,55 @@ app.get('/channels', async (req, res) => {
     res.send({ channels });
 });
 
+const extractValue = (input, regex) => {
+    input = utils.formatUsername(input);
+    const match = input.match(regex);
+    if (match) {
+        return match[1];
+    }
+    return null;
+}
+
+const logsApi = async (req, res) => {
+    const channel = extractValue(req.url, utils.channelLinkRegex);
+    const user = extractValue(req.url, utils.userLinkRegex);
+    const { force } = req.query;
+
+    if (!channel) {
+        res.status(404);
+        return res.send('Invalid channel or channel ID');
+    }
+
+    try {
+        const data = await utils.getInstance(channel, user, force);
+        if (data.error) {
+            res.status(data.status || 404);
+            return res.send(data.error);
+        } else {
+            const instanceLink = data?.userLogs?.instances[0] ?? data?.channelLogs?.instances[0];
+
+            const { body, statusCode } = await got(`${instanceLink}${req.url}`, {
+                headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                https: {
+                    rejectUnauthorized: false,
+                },
+                http2: true,
+            });
+
+            res.status(statusCode);
+            return res.send(body);
+        }
+
+    } catch (err) {
+        res.status(500);
+        return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
+    }
+}
+
+app.get('/list', logsApi);
+app.get('/channel/:endpoint(*)', logsApi);
+app.get('/channelid/:endpoint(*)', logsApi);
+
 const getRecentMessages = async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
 
@@ -158,6 +208,7 @@ const getRecentMessages = async (req, res) => {
 
         return res.send(recentMessages);
     } catch (err) {
+        res.status(500);
         return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 };
@@ -169,14 +220,12 @@ app.get('/api/v2/recent-messages/:channel', getRecentMessages);
 app.use(function (req, res, next) {
     const err = new Error('Not found');
     err.status = 404;
-
     next(err);
 });
 
-app.use(function (err, req, res) {
+app.use(function (err, req, res, next) {
     res.status(err.status || 500);
-
-    return res.render('error', { error: err.message, code: `${err.status} - ` });
+    res.render('error', { error: err.message, code: `${err.status} - ` });
 });
 
 app.listen(port, () => {

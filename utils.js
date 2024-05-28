@@ -2,6 +2,8 @@ import data from './data.json' with { type: 'json' };
 import got from 'got';
 
 export class Utils {
+    channelLinkRegex = /channel(?:id)?[\/=]([a-z0-9]\w{0,24}|id:\d{1,})/i;
+    userLinkRegex = /user(?:id)?[\/=]([a-z0-9]\w{0,24}|id:\d{1,})/i;
     userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
     userIdRegex = /^id:(\d{1,})$/i;
 
@@ -85,7 +87,10 @@ export class Utils {
 
         const instances = data.justlogsInstances;
         const start = performance.now();
+
+        let status = 200;
         let downSites = 0;
+
         let optOuts = [];
         let userLinks = [];
         let channelLinks = [];
@@ -145,9 +150,22 @@ export class Utils {
                 userLinks.push(instance.Full);
             }
 
-            if (optOuts.length && !channelInstances.length) error = 'User or channel has opted out';
-            else if (!channelInstances.length) error = 'No channel logs found';
-            else if (!userInstances.length && user) error = 'No user logs found';
+
+            // Error messages and status codes
+            if (optOuts.length && !channelInstances.length) {
+                error = 'User or channel has opted out';
+                status = 403;
+            }
+            else if (!channelInstances.length) {
+                error = 'No channel logs found';
+                status = 404;
+            }
+            else if (!userInstances.length && user) {
+                error = 'No user logs found';
+                status = 404;
+            }
+        } else {
+            status = 404;
         }
 
         const end = performance.now();
@@ -156,10 +174,11 @@ export class Utils {
             s: Math.round((end - start) / 10) / 100,
         };
 
-        console.log(`- [Logs] Channel: ${channel}${user ? ` - User: ${user}` : ''} | ${elapsed.s}s`);
+        console.log(`- [Logs] Channel: ${channel}${user ? ` - User: ${user}` : ''} | ${elapsed.ms}ms`);
 
         return {
             error,
+            status,
             instancesInfo: {
                 count: instances.length,
                 down: downSites,
@@ -343,7 +362,7 @@ export class Utils {
             s: Math.round((end - start) / 10) / 100,
         };
 
-        console.log(`- [RecentMessages] Channel: ${channel} | ${status} - ${messages.length} - ${elapsed.s}s`);
+        console.log(`- [RecentMessages] Channel: ${channel} | ${status} - ${messages.length} - ${elapsed.ms}ms`);
 
         return {
             error_code: errorCode,
