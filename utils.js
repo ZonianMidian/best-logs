@@ -22,7 +22,7 @@ export class LogUtils {
     async request(url, options) {
         return Promise.race([
             got(url, options),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 5000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), options.timeout))
         ])
     }
 
@@ -120,10 +120,6 @@ export class LogUtils {
                         continue;
                     case 3:
                         // The instance is up but the channel logs are not available
-                        continue;
-                    case 4:
-                        // The instance is up but the user or channel logs are opted out
-                        optOuts.push(Link);
                         continue;
                     case 4:
                         // The instance is up but the user or channel logs are opted out
