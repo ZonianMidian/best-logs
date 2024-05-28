@@ -43,10 +43,10 @@ app.get('/rdr/:channel', async (req, res) => {
         return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '' });
     }
 
-    const { pretty } = req.query;
+    const { force, pretty } = req.query;
 
     try {
-        const instance = await utils.getInstance(channel, null, 'true', pretty);
+        const instance = await utils.getInstance(channel, null, force, pretty);
 
         if (instance.error) {
             return res.render('error', { error: instance.error, code: '' });
@@ -61,7 +61,7 @@ app.get('/rdr/:channel', async (req, res) => {
 app.get('/rdr/:channel/:user', async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
     const user = utils.formatUsername(req.params.user);
-    const { pretty } = req.query;
+    const { force, pretty } = req.query;
 
     if (!utils.userChanRegex.test(channel)) {
         return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '' });
@@ -72,7 +72,7 @@ app.get('/rdr/:channel/:user', async (req, res) => {
     }
 
     try {
-        const instance = await utils.getInstance(channel, user, 'true', pretty);
+        const instance = await utils.getInstance(channel, user, force, pretty);
 
         if (instance.error) {
             return res.render('error', { error: instance.error, code: '' });
