@@ -162,7 +162,7 @@ const checkInstances = (obj) => {
 app.get('/instances', async (req, res) => {
     const instances = Object.fromEntries(utils.instanceChannels);
     res.send({
-        stats: checkInstances(instances),
+        instancesStats: checkInstances(instances),
         instances: instances,
     });
 });
@@ -171,7 +171,7 @@ app.get('/channels', async (req, res) => {
     const instances = Object.fromEntries(utils.instanceChannels);
     const channels = Array.from(utils.uniqueChannels);
     res.send({
-        stats: checkInstances(instances),
+        instancesStats: checkInstances(instances),
         channels: channels,
     });
 });
