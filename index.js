@@ -203,13 +203,18 @@ const logsApi = async (req, res) => {
         } else {
             const instanceLink = data?.userLogs?.instances[0] ?? data?.channelLogs?.instances[0];
 
-            const { body, statusCode } = await got(`${instanceLink}${req.url}`, {
+            const { body, statusCode, headers } = await got(`${instanceLink}${req.url}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 https: {
                     rejectUnauthorized: false,
                 },
                 http2: true,
             });
+
+            if (/text\/html/.test(headers['content-type'])) {
+                res.status(400);
+                return res.send('Invalid endpoint');
+            }
 
             res.status(statusCode);
             return res.send(body);
