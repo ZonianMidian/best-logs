@@ -18,7 +18,7 @@ app.set('view engine', 'ejs');
 app.use(cors());
 
 app.get('/', (req, res) => {
-    const instances = utils.config.justlogsInstances;
+    const instances = Object.keys(utils.config.justlogsInstances);
     res.render('index', { instances: instances });
 });
 
@@ -27,7 +27,7 @@ app.get('/api', async (req, res) => {
 });
 
 app.get('/faq', (req, res) => {
-    const instances = utils.config.justlogsInstances;
+    const instances = Object.keys(utils.config.justlogsInstances);
 
     res.render('faq', { instances: instances });
 });
@@ -257,5 +257,5 @@ app.use(function (err, req, res, next) {
 
 app.listen(utils.config.port, () => {
     utils.loopLoadInstanceChannels();
-    console.log(`Logs website listening on ${utils.config.port}`);
+    console.log(`- [Website] Listening on ${utils.config.port}`);
 });

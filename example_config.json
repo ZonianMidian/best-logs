@@ -1,25 +1,57 @@
 {
-    "website": "https://justloginstances.zzls.xyz",
     "port": 2028,
-    "justlogsInstances": [
-        "logs.spanix.team",
-        "logs.nadeko.net",
-        "logs.ivr.fi",
-        "logs.2807.eu",
-        "harambelogs.pl",
-        "vtlogs.moe",
-        "logs.magichack.xyz",
-        "logs.lucas19961.de",
-        "logs.jimmyboy.dev",
-        "logs.flake.sh",
-        "logs.potat.app",
-        "logs.supa.codes",
-        "logs.choccy.bar",
-        "justlog.kkx.one"
-    ],
-    "alternateEndpoint": {
-        "logs.lucas19961.de": "logsback.susgee.dev",
-        "harambelogs.pl": "logs.zneix.eu"
+    "justlogsInstances": {
+        "logs.spanix.team": {
+            "maintainer": "ZonianMidian"
+        },
+        "logs.nadeko.net": {
+            "maintainer": "Fijxu"
+        },
+        "logs.ivr.fi": {
+            "maintainer": "Leppunen"
+        },
+        "logs.2807.eu": {
+            "maintainer": "florian_2807"
+        },
+        "harambelogs.pl": {
+            "maintainer": "zneix",
+            "alternate": "logs.zneix.eu"
+        },
+        "vtlogs.moe": {
+            "maintainer": ""
+        },
+        "logs.magichack.xyz": {
+            "maintainer": "HackMagic"
+        },
+        "logs.lucas19961.de": {
+            "maintainer": "lucas19961",
+            "alternate": "logsback.susgee.dev"
+        },
+        "logs.jimmyboy.dev": {
+            "maintainer": "devJimmyboy"
+        },
+        "logs.flake.sh": {
+            "maintainer": "notohh"
+        },
+        "logs.potat.app": {
+            "maintainer": "RyanPotat"
+        },
+        "logs.supa.codes": {
+            "maintainer": "Supelle"
+        },
+        "logs.choccy.bar": {
+            "maintainer": "CHOCCY"
+        },
+        "justlog.kkx.one": {
+            "maintainer": "33KK"
+        }
     },
-    "recentmessagesInstances": ["recent-messages.zneix.eu", "recent-messages.robotty.de"]
+    "recentmessagesInstances": {
+        "recent-messages.zneix.eu": {
+            "maintainer": "zneix"
+        },
+        "recent-messages.robotty.de": {
+            "maintainer": "randers"
+        }
+    }
 }
