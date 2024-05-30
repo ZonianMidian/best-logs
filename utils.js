@@ -1,5 +1,22 @@
-import data from './data.json' with { type: 'json' };
+import fs from 'fs/promises';
 import got from 'got';
+
+const loadConfig = async () => {
+    try {
+        const data = await fs.readFile('./config.json', 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            // Si el archivo no existe, cargar el archivo de respaldo
+            const defaultData = await fs.readFile('./example_config.json', 'utf-8');
+            return JSON.parse(defaultData);
+        } else {
+            throw error;
+        }
+    }
+};
+
+const loadedConfig = await loadConfig();
 
 export class Utils {
     channelLinkRegex = /channel(?:id)?[\/=]([a-z0-9]\w{0,24}|id:\d{1,})/i;
@@ -14,6 +31,7 @@ export class Utils {
 
     reloadInterval = 1 * 60 * 60 * 1000;
     lastUpdated = Date.now();
+    config = loadedConfig;
     loadLoop = null;
 
     formatUsername(username) {
@@ -33,9 +51,9 @@ export class Utils {
 
     async loadInstanceChannels(noLogs) {
         await Promise.allSettled(
-            data.justlogsInstances.map(async (url) => {
+            this.config.justlogsInstances.map(async (url) => {
                 try {
-                    const channelURL = data.alternateEndpoint[url] ?? url;
+                    const channelURL = this.config.alternateEndpoint[url] ?? url;
                     const logsData = await this.request(`https://${channelURL}/channels`, {
                         headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                         https: {
@@ -70,7 +88,7 @@ export class Utils {
         this.statusCodes.clear();
 
         console.log(
-            `- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${data.justlogsInstances.length} instances`,
+            `- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${this.config.justlogsInstances.length} instances`,
         );
     }
 
@@ -85,7 +103,7 @@ export class Utils {
     async getInstance(channel, user, force, pretty, error) {
         force = force?.toLowerCase() === 'true';
 
-        const instances = data.justlogsInstances;
+        const instances = this.config.justlogsInstances;
         const start = performance.now();
 
         let status = 200;
@@ -216,7 +234,7 @@ export class Utils {
 
         const channels = this.instanceChannels.get(url)?.flatMap((i) => [i.name, i.userID]) ?? [];
         const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
-        const instanceURL = data.alternateEndpoint[url] ?? url;
+        const instanceURL = this.config.alternateEndpoint[url] ?? url;
         const channelClean = channel.replace('id:', '');
 
         if (!channels.length) return { Status: 0 };
@@ -324,7 +342,7 @@ export class Utils {
     }
 
     async getRecentMessages(channel, searchParams) {
-        const instances = data.recentmessagesInstances;
+        const instances = this.config.recentmessagesInstances;
         const start = performance.now();
         let messages = [];
         let instance = null;

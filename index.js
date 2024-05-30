@@ -1,4 +1,3 @@
-import data from './data.json' with { type: 'json' };
 import { Utils } from './utils.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -9,7 +8,6 @@ import got from 'got';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const port = data.port || 3000;
 const utils = new Utils();
 const app = express();
 
@@ -20,7 +18,7 @@ app.set('view engine', 'ejs');
 app.use(cors());
 
 app.get('/', (req, res) => {
-    const instances = data.justlogsInstances;
+    const instances = utils.config.justlogsInstances;
     res.render('index', { instances: instances });
 });
 
@@ -29,7 +27,7 @@ app.get('/api', async (req, res) => {
 });
 
 app.get('/faq', (req, res) => {
-    const instances = data.justlogsInstances;
+    const instances = utils.config.justlogsInstances;
 
     res.render('faq', { instances: instances });
 });
@@ -257,7 +255,7 @@ app.use(function (err, req, res, next) {
     res.render('error', { error: err.message, code: `${err.status} - ` });
 });
 
-app.listen(port, () => {
+app.listen(utils.config.port, () => {
     utils.loopLoadInstanceChannels();
-    console.log(`Logs website listening on ${port}`);
+    console.log(`Logs website listening on ${utils.config.port}`);
 });
