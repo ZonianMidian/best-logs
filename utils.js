@@ -105,7 +105,7 @@ export class Utils {
 
         await this.loadInstanceChannels(noLogs);
 
-        this.loadLoop = setInterval(() => this.loadInstanceChannels(noLogs), this.reloadInterval);
+        this.loadLoop = setInterval(() => this.loadInstanceChannels(), this.reloadInterval);
     }
 
     async getInstance(channel, user, force, pretty, error) {
@@ -350,8 +350,10 @@ export class Utils {
     }
 
     async getRecentMessages(channel, searchParams) {
-        const instances = Object.keys(this.config.recentmessagesInstances);
         const start = performance.now();
+
+        const instances = Object.keys(this.config.recentmessagesInstances);
+        const { limit } = searchParams;
         let messages = [];
 
         let statusMessage = null;
@@ -360,13 +362,14 @@ export class Utils {
         let status = null;
         let error = null;
 
+
         for (const entry of instances) {
             const { body, statusCode } = await this.fetchMessages(entry, channel, searchParams);
 
             if (statusCode === 200 && body.messages.length) {
                 instance = `https://${entry}`;
                 messages = body.messages;
-                status = '200';
+                status = 200;
 
                 console.log(`[${entry}] Channel: ${channel} | ${status} - ${messages.length} messages`);
                 break;
@@ -374,10 +377,44 @@ export class Utils {
                 statusMessage = body?.status_message || 'Internal Server Error';
                 errorCode = body?.error_code || 'internal_server_error';
                 error = body?.error || 'Internal Server Error';
-                status = statusCode || '500';
+                status = statusCode || 500;
 
                 console.error(`[${entry}] Channel: ${channel} | ${status} - ${statusMessage}`);
             }
+        }
+        const logs = await this.getInstance(channel);
+        let instanceLink = 'Logs';
+
+        try {
+
+            if (logs.available.channel) {
+                instanceLink = (logs.channelLogs.instances[0]).replace('https://', '');
+
+                const { body: logsMessages } = await this.request(`https://${instanceLink}/channel/${channel}?json=true`, {
+                    headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                    responseType: 'json',
+                    https: {
+                        rejectUnauthorized: false,
+                    },
+                    timeout: 5000,
+                    http2: true,
+                });
+
+                if (logsMessages.messages.length > messages.length) {
+                    console.log(`[${instanceLink}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`);
+
+                    messages = logsMessages.messages
+                        .slice(-limit)
+                        .map(message => message.raw);
+                    instance = instanceLink;
+                    statusMessage = null;
+                    errorCode = null;
+                    status = 200;
+                    error = null;
+                }
+            }
+        } catch (err) {
+            console.error(`- [${instanceLink}] Channel: ${channel} | Failed loading messages: ${err.message}`);
         }
 
         const end = performance.now();
@@ -389,13 +426,13 @@ export class Utils {
         console.log(`- [RecentMessages] Channel: ${channel} | ${status} - ${messages.length} - ${elapsed.ms}ms`);
 
         return {
-            error_code: errorCode,
-            status_message: statusMessage,
-            messages,
             status,
+            status_message: statusMessage,
             error,
-            elapsed,
+            error_code: errorCode,
             instance,
+            elapsed,
+            messages,
         };
     }
 

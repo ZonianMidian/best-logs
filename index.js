@@ -248,6 +248,7 @@ const getRecentMessages = async (req, res) => {
     try {
         const recentMessages = await utils.getRecentMessages(channel, req.query);
 
+        res.status(recentMessages.status);
         return res.send(recentMessages);
     } catch (err) {
         res.status(500);
