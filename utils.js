@@ -353,7 +353,7 @@ export class Utils {
         const start = performance.now();
 
         const instances = Object.keys(this.config.recentmessagesInstances);
-        const { limit } = searchParams;
+        const { limit, rm_only } = searchParams;
         let messages = [];
 
         let statusMessage = null;
@@ -381,38 +381,43 @@ export class Utils {
                 console.error(`[${entry}] Channel: ${channel} | ${status} - ${statusMessage}`);
             }
         }
-        const logs = await this.getInstance(channel);
-        let instanceLink = 'Logs';
 
-        try {
-            if (logs.available.channel) {
-                instanceLink = logs.channelLogs.instances[0];
+        if (!rm_only || rm_only !== 'true') {
+            const logs = await this.getInstance(channel);
+            let instanceLink = 'Logs';
 
-                const { body: logsMessages } = await this.request(`${instanceLink}/channel/${channel}?json=true`, {
-                    headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                    responseType: 'json',
-                    https: {
-                        rejectUnauthorized: false,
-                    },
-                    timeout: 5000,
-                    http2: true,
-                });
+            try {
+                if (logs.available.channel) {
+                    instanceLink = logs.channelLogs.instances[0];
 
-                if (logsMessages.messages.length > messages.length) {
-                    console.log(
-                        `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`,
-                    );
+                    const { body: logsMessages } = await this.request(`${instanceLink}/channel/${channel}?json=true`, {
+                        headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                        responseType: 'json',
+                        https: {
+                            rejectUnauthorized: false,
+                        },
+                        timeout: 5000,
+                        http2: true,
+                    });
 
-                    messages = logsMessages.messages.slice(-limit).map((message) => message.raw);
-                    instance = instanceLink;
-                    statusMessage = null;
-                    errorCode = null;
-                    status = 200;
-                    error = null;
+                    if (logsMessages.messages.length > messages.length) {
+                        console.log(
+                            `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`,
+                        );
+
+                        messages = logsMessages.messages.slice(-limit).map((message) => message.raw);
+                        instance = instanceLink;
+                        statusMessage = null;
+                        errorCode = null;
+                        status = 200;
+                        error = null;
+                    }
                 }
+            } catch (err) {
+                console.error(
+                    `- [${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`,
+                );
             }
-        } catch (err) {
-            console.error(`- [${instanceLink}] Channel: ${channel} | Failed loading messages: ${err.message}`);
         }
 
         const end = performance.now();
