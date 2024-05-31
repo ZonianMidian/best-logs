@@ -139,6 +139,10 @@ a {
     color: red;
 }
 
+.time {
+    margin: 0;
+}
+
 @media (max-width: 768px) {
     .card {
         width: calc(50% - 40px);
