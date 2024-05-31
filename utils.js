@@ -362,7 +362,6 @@ export class Utils {
         let status = null;
         let error = null;
 
-
         for (const entry of instances) {
             const { body, statusCode } = await this.fetchMessages(entry, channel, searchParams);
 
@@ -386,11 +385,10 @@ export class Utils {
         let instanceLink = 'Logs';
 
         try {
-
             if (logs.available.channel) {
-                instanceLink = (logs.channelLogs.instances[0]).replace('https://', '');
+                instanceLink = logs.channelLogs.instances[0];
 
-                const { body: logsMessages } = await this.request(`https://${instanceLink}/channel/${channel}?json=true`, {
+                const { body: logsMessages } = await this.request(`${instanceLink}/channel/${channel}?json=true`, {
                     headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                     responseType: 'json',
                     https: {
@@ -401,11 +399,11 @@ export class Utils {
                 });
 
                 if (logsMessages.messages.length > messages.length) {
-                    console.log(`[${instanceLink}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`);
+                    console.log(
+                        `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`,
+                    );
 
-                    messages = logsMessages.messages
-                        .slice(-limit)
-                        .map(message => message.raw);
+                    messages = logsMessages.messages.slice(-limit).map((message) => message.raw);
                     instance = instanceLink;
                     statusMessage = null;
                     errorCode = null;
