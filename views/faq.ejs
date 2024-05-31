@@ -44,22 +44,17 @@
         <blockquote class="blockquote margin">
             <h2>Why are there no logs for my channel?</h2>
             <p class="col-md-4 offset-md-4">
-                You should contact the hoster of one of these log services and ask 
-                them to add your channel:
+                You should contact the maintainer of one of the instances and ask 
+                him to add your channel. Check the
+                <a
+                    target="_BLANK"
+                    href="/status"
+                    style="text-decoration: none"
+                >
+                    Status</a
+                >
+                section for more information about the instances.
             </p>
-            <ul style="list-style: none;">
-                <% for (const data of instances) { %>
-                <li>
-                    <a
-                        target="_BLANK"
-                        href="https://<%= data %>"
-                        style="text-decoration: none;"
-                    >
-                        <%= data %></a
-                    >
-                </li>
-                <% } %>
-            </ul>
         </blockquote>
     </div>
 </body>

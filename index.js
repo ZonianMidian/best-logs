@@ -19,7 +19,7 @@ app.use(cors());
 
 app.get('/', (req, res) => {
     const instances = Object.keys(utils.config.justlogsInstances);
-    res.render('index', { instances: instances });
+    res.render('index', { instances });
 });
 
 app.get('/api', async (req, res) => {
@@ -29,13 +29,28 @@ app.get('/api', async (req, res) => {
 app.get('/faq', (req, res) => {
     const instances = Object.keys(utils.config.justlogsInstances);
 
-    res.render('faq', { instances: instances });
+    res.render('faq', { instances });
 });
 
 app.get('/contact', async (req, res) => {
     const userInfo = await utils.getInfo('zonianmidian');
 
     res.render('contact', userInfo);
+});
+
+app.get('/status', (req, res) => {
+    const channels = Object.fromEntries(utils.instanceChannels);
+    const instances = utils.config.justlogsInstances;
+
+    for (let key in instances) {
+        if (channels[key]) {
+            instances[key].channels = channels[key];
+        } else {
+            instances[key] = { channels: channels[key] };
+        }
+    }
+
+    res.render('status', { instances, timestamp: utils.lastUpdated, nextUpdate: utils.reloadInterval });
 });
 
 app.get('/rdr/:channel', async (req, res) => {

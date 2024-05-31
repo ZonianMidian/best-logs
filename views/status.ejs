@@ -1,0 +1,64 @@
+<%- include('navbar') -%>
+<head>
+    <title>Logs | Status</title>
+    <meta name="description" content="Status of instances" />
+    <meta property="og:title" content="Logs | Status" />
+    <meta property="og:image" content="/static/DankG.png" />
+    <meta property="og:description" content="Status of instances" />
+</head>
+<body>
+    <div class="text-center margin">
+        <h1>Status</h1>
+        <div class="container">
+            <% for (let key in instances) { %>
+                <div class="card">
+                    <h2><a href="https://<%= key %>" target="_BLANK"><%= key %></a></h2>
+                    <% if (instances[key].maintainer) { %>
+                        <h3>by <a href="https://twitch.tv/<%= instances[key].maintainer %>" target="_BLANK"><%= instances[key].maintainer %></a></h3>
+                    <% } else {%>
+                        <h3>&#x200E;</h3>
+                    <% } %>
+                    <% if (instances[key].channels && instances[key].channels.length > 0) { %>
+                        <span class="status up">&#x2191; UP</span>
+                        <span><%= new Intl.NumberFormat().format(instances[key].channels.length) %> channels</span>
+                    <% } else { %>
+                        <span class="status down">&#x2193; DOWN</span>
+                        <span>&#x200E;</span>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+        <p id="timestamp">Last update: X %></p>
+        <p id="next-update">Next update: X %></p> 
+    </div>
+</body>
+
+<script>
+    function getTime(timestamp, future) {
+        const now = Date.now();
+        const difference = future ? timestamp - now : now - timestamp;
+
+        const seconds = Math.floor(difference / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (days > 0) {
+            return days === 1 ? '1 day' : `${days} days`;
+        } else if (hours > 0) {
+            return hours === 1 ? '1 hour' : `${hours} hours`;
+        } else if (minutes > 0) {
+            return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+        } else {
+            return seconds === 1 ? '1 second' : `${seconds} seconds`;
+        }
+    }
+
+    setInterval(() => {
+        const timestampElement = document.getElementById('timestamp');
+        timestampElement.innerText = `Last update: ${getTime(`<%= timestamp %>`)} ago`;
+
+        const nextUpdateElement = document.getElementById('next-update');
+        nextUpdateElement.innerText = `Next update: In ${getTime(`<%= timestamp + nextUpdate %>`, true)}`;
+    }, 500);
+</script>
