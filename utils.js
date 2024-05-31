@@ -415,7 +415,7 @@ export class Utils {
                 }
             } catch (err) {
                 console.error(
-                    `- [${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`,
+                    `[${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`,
                 );
             }
         }
