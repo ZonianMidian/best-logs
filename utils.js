@@ -105,7 +105,7 @@ export class Utils {
 
         await this.loadInstanceChannels(noLogs);
 
-        this.loadLoop = setInterval(this.loadInstanceChannels, this.reloadInterval);
+        this.loadLoop = setInterval(() => this.loadInstanceChannels(noLogs), this.reloadInterval);
     }
 
     async getInstance(channel, user, force, pretty, error) {
@@ -353,9 +353,10 @@ export class Utils {
         const instances = Object.keys(this.config.recentmessagesInstances);
         const start = performance.now();
         let messages = [];
-        let instance = null;
+
         let statusMessage = null;
         let errorCode = null;
+        let instance = null;
         let status = null;
         let error = null;
 

@@ -38,6 +38,10 @@
         const now = Date.now();
         const difference = future ? timestamp - now : now - timestamp;
 
+        if (difference < 0) {
+            return '0 seconds';
+        }
+
         const seconds = Math.floor(difference / 1000);
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
@@ -54,11 +58,24 @@
         }
     }
 
-    setInterval(() => {
+    const intervalId = setInterval(() => {
         const timestampElement = document.getElementById('timestamp');
-        timestampElement.innerText = `Last update: ${getTime(`<%= timestamp %>`)} ago`;
-
+        const timestamp = `<%= timestamp %>`;
+        
         const nextUpdateElement = document.getElementById('next-update');
-        nextUpdateElement.innerText = `Next update: In ${getTime(`<%= timestamp + nextUpdate %>`, true)}`;
+        const nextUpdate = `<%= nextUpdate %>`;
+
+        const timeAgo = getTime(`<%= timestamp %>`);
+        const timeUntilNext = getTime(`<%= timestamp + nextUpdate %>`, true);
+
+        timestampElement.innerText = `Last update: ${timeAgo} ago`;
+        nextUpdateElement.innerText = `Next update: In ${timeUntilNext}`;
+
+        if (timeUntilNext === '0 seconds') {
+            clearInterval(intervalId);
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
     }, 500);
 </script>
