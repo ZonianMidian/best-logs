@@ -57,6 +57,7 @@ app.get('/rdr/:channel', async (req, res) => {
     const channel = utils.formatUsername(req.params.channel);
 
     if (!utils.userChanRegex.test(channel)) {
+        res.status(400);
         return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '400' });
     }
 
@@ -66,11 +67,14 @@ app.get('/rdr/:channel', async (req, res) => {
         const instance = await utils.getInstance(channel, null, force, pretty);
 
         if (instance.error) {
-            return res.render('error', { error: instance.error, code: '' });
+            res.status(instance.status);
+            return res.render('error', { error: instance.error, code: instance.status });
         }
 
+        res.status(302);
         return res.redirect(instance?.channelLogs?.fullLink[0]);
     } catch (err) {
+        res.status(500);
         return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '500' });
     }
 });
@@ -81,10 +85,12 @@ app.get('/rdr/:channel/:user', async (req, res) => {
     const { force, pretty } = req.query;
 
     if (!utils.userChanRegex.test(channel)) {
+        res.status(400);
         return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '400' });
     }
 
     if (!utils.userChanRegex.test(user)) {
+        res.status(400);
         return res.render('error', { error: `Invalid username or user ID: ${user}`, code: '400' });
     }
 
@@ -92,11 +98,14 @@ app.get('/rdr/:channel/:user', async (req, res) => {
         const instance = await utils.getInstance(channel, user, force, pretty);
 
         if (instance.error) {
-            return res.render('error', { error: instance.error, code: '' });
+            res.status(instance.status);
+            return res.render('error', { error: instance.error, code: instance.status });
         }
 
+        res.status(302);
         return res.redirect(instance?.userLogs?.fullLink[0]);
     } catch (err) {
+        res.status(500);
         return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '500' });
     }
 });
@@ -114,15 +123,23 @@ app.get('/api/:channel', async (req, res) => {
         const instances = await utils.getInstance(channel, null, force, pretty, error);
 
         if (isPlain) {
+            res.status(instances?.status || 400)
+            res.setHeader('content-type', 'text/plain');
             return res.send(instances?.channelLogs?.fullLink[0] ?? instances?.error);
         }
 
+        res.status(instances?.status || 400)
+        res.setHeader('content-type', 'application/json');
         return res.send(instances);
     } catch (err) {
         if (isPlain) {
+            res.status(500);
+            res.setHeader('content-type', 'text/plain');
             return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
         }
 
+        res.status(500);
+        res.setHeader('content-type', 'application/json');
         return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
@@ -141,15 +158,23 @@ app.get('/api/:channel/:user', async (req, res) => {
         const instances = await utils.getInstance(channel, user, force, pretty, error);
 
         if (isPlain) {
+            res.status(instances?.status || 400);
+            res.setHeader('content-type', 'text/plain');
             res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
         }
 
+        res.status(instances?.status || 400);
+        res.setHeader('content-type', 'application/json');
         return res.send(instances);
     } catch (err) {
         if (isPlain) {
+            res.status(500);
+            res.setHeader('content-type', 'text/plain');
             return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
         }
 
+        res.status(500);
+        res.setHeader('content-type', 'application/json');
         return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
@@ -205,6 +230,7 @@ const logsApi = async (req, res) => {
 
     if (!channel) {
         res.status(404);
+        res.setHeader('content-type', 'text/plain');
         return res.send('Invalid channel or channel ID');
     }
 
@@ -212,6 +238,7 @@ const logsApi = async (req, res) => {
         const data = await utils.getInstance(channel, user, force);
         if (data.error) {
             res.status(data.status || 404);
+            res.setHeader('content-type', 'text/plain');
             return res.send(data.error);
         } else {
             const instanceLink = data?.userLogs?.instances[0] ?? data?.channelLogs?.instances[0];
@@ -226,14 +253,17 @@ const logsApi = async (req, res) => {
 
             if (/text\/html/.test(headers['content-type'])) {
                 res.status(400);
+                res.setHeader('content-type', 'text/plain');
                 return res.send('Invalid endpoint');
             }
 
             res.status(statusCode);
+            res.setHeader('content-type', headers['content-type']);
             return res.send(body);
         }
     } catch (err) {
         res.status(500);
+        res.setHeader('content-type', 'text/plain');
         return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
     }
 };
@@ -249,9 +279,11 @@ const getRecentMessages = async (req, res) => {
         const recentMessages = await utils.getRecentMessages(channel, req.query);
 
         res.status(recentMessages.status);
+        res.setHeader('content-type', 'application/json');
         return res.send(recentMessages);
     } catch (err) {
         res.status(500);
+        res.setHeader('content-type', 'application/json');
         return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 };
