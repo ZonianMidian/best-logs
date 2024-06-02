@@ -136,7 +136,7 @@ export class Utils {
             const resolvedInstances = results.filter(({ status }) => status === 'fulfilled').map(({ value }) => value);
 
             for (const instance of resolvedInstances) {
-                const { Status, Link, Full, channelFull, length } = instance;
+                const { Status, Link, Full, channelFull, list } = instance;
 
                 switch (Status) {
                     case 0:
@@ -145,12 +145,12 @@ export class Utils {
                         continue;
                     case 1:
                         // The instance is up and the user logs are available
-                        channelInstancesWithLength.push({ Link, Full: channelFull, length });
-                        userInstancesWithLength.push({ Link, Full, length });
+                        channelInstancesWithLength.push({ Link, Full: channelFull, list });
+                        userInstancesWithLength.push({ Link, Full, list });
                         continue;
                     case 2:
                         // The instance is up but the user logs are not available
-                        channelInstancesWithLength.push({ Link, Full: channelFull, length });
+                        channelInstancesWithLength.push({ Link, Full: channelFull, list });
                         continue;
                     case 3:
                         // The instance is up but the channel logs are not available
@@ -163,8 +163,8 @@ export class Utils {
             }
 
             // Sort the instances by length
-            channelInstancesWithLength.sort((a, b) => b.length - a.length);
-            userInstancesWithLength.sort((a, b) => b.length - a.length);
+            channelInstancesWithLength.sort((a, b) => b.list.length - a.list.length);
+            userInstancesWithLength.sort((a, b) => b.list.length - a.list.length);
 
             for (const instance of channelInstancesWithLength) {
                 channelInstances.push(instance.Link);
@@ -197,6 +197,8 @@ export class Utils {
             s: Math.round((end - start) / 10) / 100,
         };
 
+        const channelList = channelInstancesWithLength[0]?.list ?? [];
+
         console.log(`- [Logs] Channel: ${channel}${user ? ` - User: ${user}` : ''} | ${elapsed.ms}ms`);
 
         return {
@@ -214,6 +216,10 @@ export class Utils {
             available: {
                 user: userInstances.length > 0,
                 channel: channelInstances.length > 0,
+            },
+            loggedData: {
+                days: channelList.length,
+                since: channelList[channelList.length - 1] ?? null,
             },
             userLogs: {
                 count: userInstances.length,
@@ -248,12 +254,11 @@ export class Utils {
         if (!channels.length) return { Status: 0 };
         if (!channels.includes(channelClean)) return { Status: 3 };
 
-        const lengthCacheKey = `logs:length:${url}:${channel.replace('id:', 'id-')}`;
+        const listCacheKey = `logs:length:${url}:${channel.replace('id:', 'id-')}`;
+        let list = this.lengthData.get(listCacheKey);
 
-        let length = this.lengthData.get(lengthCacheKey);
-
-        if (!length || force) {
-            length = await got(`https://${instanceURL}/list?${channelPath}=${channelClean}`, {
+        if (!list || force) {
+            list = await got(`https://${instanceURL}/list?${channelPath}=${channelClean}`, {
                 headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                 https: {
                     rejectUnauthorized: false,
@@ -263,22 +268,22 @@ export class Utils {
             })
                 .then((response) => {
                     const data = JSON.parse(response.body);
-                    const availableLogsLength = data?.availableLogs?.length ?? 0;
+                    const availableLogsLength = data?.availableLogs ?? [];
 
-                    this.lengthData.set(lengthCacheKey, availableLogsLength);
+                    this.lengthData.set(listCacheKey, availableLogsLength);
 
                     return availableLogsLength;
                 })
                 .catch((err) => {
                     console.error(`[${instanceURL}] Failed loading ${channelClean} length: ${err.message}`);
-                    return 0;
+                    return [];
                 });
 
-            this.lengthData.set(lengthCacheKey, length);
+            this.lengthData.set(listCacheKey, list);
         }
 
         if (!user) {
-            console.log(`[${url}] Channel: ${channel} | ${length}`);
+            console.log(`[${url}] Channel: ${channel} | ${list.length}`);
 
             return {
                 Status: 2,
@@ -286,7 +291,7 @@ export class Utils {
                 channelFull: pretty
                     ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`
                     : `https://${url}/?channel=${channel}`,
-                length,
+                list,
             };
         }
 
@@ -321,7 +326,7 @@ export class Utils {
             ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`
             : `https://${url}/?channel=${channel}`;
 
-        console.log(`[${url}] Channel: ${channel} - User: ${user} | ${statusCode} - ${length}`);
+        console.log(`[${url}] Channel: ${channel} - User: ${user} | ${statusCode} - ${list.length}`);
 
         if (statusCode === 403) {
             return {
@@ -331,7 +336,7 @@ export class Utils {
         }
 
         return {
-            length,
+            list,
             channelFull,
             Status: ~~(statusCode / 100) === 2 ? 1 : 2,
             Link: `https://${url}`,
