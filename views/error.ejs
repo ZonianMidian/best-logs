@@ -1,13 +1,14 @@
 <%- include('navbar') -%>
 <head>
     <title>Logs | Error</title>
-    <meta name="description" content="Error: <%= code %><%= error %>" />
+    <meta name="description" content="Error | <%= error %>" />
     <meta property="og:title" content="Logs | Error" />
     <meta property="og:image" content="/static/FeelsDankMan.png" />
-    <meta property="og:description" content="Error: <%= code %><%= error %>" />
+    <meta property="og:description" content="Error | <%= error %>" />
 </head>
 <body style="text-align: center">
-    <h1 class="title" style="color: red">Error: <%= code %><%= error %></h1>
+    <h1 class="title" style="color: red; font-weight: bold">Error</h1>
+    <h1 class="title" style="color: red"><%= error %></h1>
     <img
         src="/static/FeelsDankMan.png"
         draggable="false"

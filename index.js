@@ -19,6 +19,7 @@ app.use(cors());
 
 app.get('/', (req, res) => {
     const instances = Object.keys(utils.config.justlogsInstances);
+
     res.render('index', { instances });
 });
 
@@ -58,7 +59,7 @@ app.get('/rdr/:channel', async (req, res) => {
 
     if (!utils.userChanRegex.test(channel)) {
         res.status(400);
-        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '400' });
+        return res.render('error', { error: `Invalid channel or channel ID: ${channel}` });
     }
 
     const { force, pretty } = req.query;
@@ -68,14 +69,14 @@ app.get('/rdr/:channel', async (req, res) => {
 
         if (instance.error) {
             res.status(instance.status);
-            return res.render('error', { error: instance.error, code: instance.status });
+            return res.render('error', { error: instance.error });
+        } else {
+            res.status(302);
+            return res.redirect(instance?.channelLogs?.fullLink[0]);
         }
-
-        res.status(302);
-        return res.redirect(instance?.channelLogs?.fullLink[0]);
     } catch (err) {
         res.status(500);
-        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '500' });
+        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
 
@@ -86,12 +87,12 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 
     if (!utils.userChanRegex.test(channel)) {
         res.status(400);
-        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: '400' });
+        return res.render('error', { error: `Invalid channel or channel ID: ${channel}` });
     }
 
     if (!utils.userChanRegex.test(user)) {
         res.status(400);
-        return res.render('error', { error: `Invalid username or user ID: ${user}`, code: '400' });
+        return res.render('error', { error: `Invalid username or user ID: ${user}` });
     }
 
     try {
@@ -99,14 +100,14 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 
         if (instance.error) {
             res.status(instance.status);
-            return res.render('error', { error: instance.error, code: instance.status });
+            return res.render('error', { error: instance.error });
+        } else {
+            res.status(302);
+            return res.redirect(instance?.userLogs?.fullLink[0]);
         }
-
-        res.status(302);
-        return res.redirect(instance?.userLogs?.fullLink[0]);
     } catch (err) {
         res.status(500);
-        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: '500' });
+        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
 
@@ -123,24 +124,22 @@ app.get('/api/:channel', async (req, res) => {
         const instances = await utils.getInstance(channel, null, force, pretty, error);
 
         if (isPlain) {
-            res.status(instances?.status || 400)
-            res.setHeader('content-type', 'text/plain');
+            res.status(instances?.status || 400);
+            res.contentType('text/plain');
             return res.send(instances?.channelLogs?.fullLink[0] ?? instances?.error);
+        } else {
+            res.status(instances?.status || 400);
+            return res.json(instances);
         }
-
-        res.status(instances?.status || 400)
-        res.setHeader('content-type', 'application/json');
-        return res.send(instances);
     } catch (err) {
         if (isPlain) {
             res.status(500);
-            res.setHeader('content-type', 'text/plain');
+            res.contentType('text/plain');
             return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
+        } else {
+            res.status(500);
+            return res.json({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
         }
-
-        res.status(500);
-        res.setHeader('content-type', 'application/json');
-        return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
 
@@ -159,23 +158,21 @@ app.get('/api/:channel/:user', async (req, res) => {
 
         if (isPlain) {
             res.status(instances?.status || 400);
-            res.setHeader('content-type', 'text/plain');
+            res.contentType('text/plain');
             res.send(instances?.userLogs?.fullLink[0] ?? instances?.error);
+        } else {
+            res.status(instances?.status || 400);
+            return res.json(instances);
         }
-
-        res.status(instances?.status || 400);
-        res.setHeader('content-type', 'application/json');
-        return res.send(instances);
     } catch (err) {
         if (isPlain) {
             res.status(500);
-            res.setHeader('content-type', 'text/plain');
+            res.contentType('text/plain');
             return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
+        } else {
+            res.status(500);
+            return res.json({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
         }
-
-        res.status(500);
-        res.setHeader('content-type', 'application/json');
-        return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 });
 
@@ -199,7 +196,8 @@ const checkInstances = (obj) => {
 
 app.get('/instances', async (req, res) => {
     const instances = Object.fromEntries(utils.instanceChannels);
-    res.send({
+
+    res.json({
         instancesStats: checkInstances(instances),
         instances: instances,
     });
@@ -208,7 +206,8 @@ app.get('/instances', async (req, res) => {
 app.get('/channels', async (req, res) => {
     const instances = Object.fromEntries(utils.instanceChannels);
     const channels = Array.from(utils.uniqueChannels);
-    res.send({
+
+    res.json({
         instancesStats: checkInstances(instances),
         channels: channels,
     });
@@ -230,7 +229,7 @@ const logsApi = async (req, res) => {
 
     if (!channel) {
         res.status(404);
-        res.setHeader('content-type', 'text/plain');
+        res.contentType('text/plain');
         return res.send('Invalid channel or channel ID');
     }
 
@@ -238,7 +237,7 @@ const logsApi = async (req, res) => {
         const data = await utils.getInstance(channel, user, force);
         if (data.error) {
             res.status(data.status || 404);
-            res.setHeader('content-type', 'text/plain');
+            res.contentType('text/plain');
             return res.send(data.error);
         } else {
             const instanceLink = data?.userLogs?.instances[0] ?? data?.channelLogs?.instances[0];
@@ -253,17 +252,17 @@ const logsApi = async (req, res) => {
 
             if (/text\/html/.test(headers['content-type'])) {
                 res.status(400);
-                res.setHeader('content-type', 'text/plain');
+                res.contentType('text/plain');
                 return res.send('Invalid endpoint');
+            } else {
+                res.status(statusCode);
+                res.contentType(headers['content-type']);
+                return res.send(body);
             }
-
-            res.status(statusCode);
-            res.setHeader('content-type', headers['content-type']);
-            return res.send(body);
         }
     } catch (err) {
         res.status(500);
-        res.setHeader('content-type', 'text/plain');
+        res.contentType('text/plain');
         return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
     }
 };
@@ -279,12 +278,10 @@ const getRecentMessages = async (req, res) => {
         const recentMessages = await utils.getRecentMessages(channel, req.query);
 
         res.status(recentMessages.status);
-        res.setHeader('content-type', 'application/json');
-        return res.send(recentMessages);
+        return res.json(recentMessages);
     } catch (err) {
         res.status(500);
-        res.setHeader('content-type', 'application/json');
-        return res.send({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
+        return res.json({ error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
     }
 };
 
@@ -300,7 +297,7 @@ app.use(function (req, res, next) {
 
 app.use(function (err, req, res, next) {
     res.status(err.status || 500);
-    res.render('error', { error: err.message, code: `${err.status} - ` });
+    res.render('error', { error: err.message });
 });
 
 app.listen(utils.config.port, () => {
