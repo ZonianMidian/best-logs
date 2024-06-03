@@ -358,7 +358,8 @@ export class Utils {
         const start = performance.now();
 
         const instances = Object.keys(this.config.recentmessagesInstances);
-        const { limit, rm_only } = searchParams;
+        let { limit, rm_only } = searchParams;
+        limit = limit || 1000;
         let messages = [];
 
         let statusMessage = null;
@@ -395,7 +396,7 @@ export class Utils {
                 if (logs.available.channel) {
                     instanceLink = logs.channelLogs.instances[0];
 
-                    const { body: logsMessages } = await this.request(`${instanceLink}/channel/${channel}?json=true`, {
+                    const { body: logsMessages } = await this.request(`${instanceLink}/channel/${channel}?json=true&limit=${limit}`, {
                         headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
                         responseType: 'json',
                         https: {
@@ -405,12 +406,12 @@ export class Utils {
                         http2: true,
                     });
 
-                    if (logsMessages.messages.length > messages.length) {
+                    if (logsMessages?.messages?.length > messages.length) {
                         console.log(
                             `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`,
                         );
 
-                        messages = logsMessages.messages.slice(-limit).map((message) => message.raw);
+                        messages = logsMessages.messages.map((message) => message.raw);
                         instance = instanceLink;
                         statusMessage = null;
                         errorCode = null;
@@ -431,7 +432,7 @@ export class Utils {
             s: Math.round((end - start) / 10) / 100,
         };
 
-        console.log(`- [RecentMessages] Channel: ${channel} | ${status} - ${messages.length} - ${elapsed.ms}ms`);
+        console.log(`- [RecentMessages] Channel: ${channel} | ${status} - [${messages.length}/${limit}] | ${elapsed.ms}ms`);
 
         return {
             status,

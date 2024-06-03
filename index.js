@@ -1,5 +1,5 @@
-import { Utils } from './utils.js';
 import { fileURLToPath } from 'url';
+import { Utils } from './utils.js';
 import { dirname } from 'path';
 import express from 'express';
 import cors from 'cors';
@@ -59,7 +59,7 @@ app.get('/rdr/:channel', async (req, res) => {
 
     if (!utils.userChanRegex.test(channel)) {
         res.status(400);
-        return res.render('error', { error: `Invalid channel or channel ID: ${channel}` });
+        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: 400 });
     }
 
     const { force, pretty } = req.query;
@@ -69,14 +69,14 @@ app.get('/rdr/:channel', async (req, res) => {
 
         if (instance.error) {
             res.status(instance.status);
-            return res.render('error', { error: instance.error });
+            return res.render('error', { error: instance.error, code: instance.status });
         } else {
             res.status(302);
             return res.redirect(instance?.channelLogs?.fullLink[0]);
         }
     } catch (err) {
         res.status(500);
-        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
+        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: 500 });
     }
 });
 
@@ -87,12 +87,12 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 
     if (!utils.userChanRegex.test(channel)) {
         res.status(400);
-        return res.render('error', { error: `Invalid channel or channel ID: ${channel}` });
+        return res.render('error', { error: `Invalid channel or channel ID: ${channel}`, code: 400 });
     }
 
     if (!utils.userChanRegex.test(user)) {
         res.status(400);
-        return res.render('error', { error: `Invalid username or user ID: ${user}` });
+        return res.render('error', { error: `Invalid username or user ID: ${user}`, code: 400 });
     }
 
     try {
@@ -100,14 +100,14 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 
         if (instance.error) {
             res.status(instance.status);
-            return res.render('error', { error: instance.error });
+            return res.render('error', { error: instance.error, code: instance.status });
         } else {
             res.status(302);
             return res.redirect(instance?.userLogs?.fullLink[0]);
         }
     } catch (err) {
         res.status(500);
-        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}` });
+        return res.render('error', { error: `Internal error${err.message ? ` - ${err.message}` : ''}`, code: 500 });
     }
 });
 
@@ -290,14 +290,15 @@ app.get('/recent-messages/:channel', getRecentMessages);
 app.get('/api/v2/recent-messages/:channel', getRecentMessages);
 
 app.use(function (req, res, next) {
-    const err = new Error('Not found');
+    const err = new Error('Not Found');
     err.status = 404;
     next(err);
 });
 
 app.use(function (err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', { error: err.message });
+    const status = err.status || 500;
+    res.status(status);
+    res.render('error', { error: err.message, code: status });
 });
 
 app.listen(utils.config.port, () => {
