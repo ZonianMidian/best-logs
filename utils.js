@@ -283,7 +283,7 @@ export class Utils {
         }
 
         if (!user) {
-            console.log(`[${url}] Channel: ${channel} | ${list.length}`);
+            console.log(`[${url}] Channel: ${channel} | ${list.length} days`);
 
             return {
                 Status: 2,
@@ -326,7 +326,7 @@ export class Utils {
             ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}`
             : `https://${url}/?channel=${channel}`;
 
-        console.log(`[${url}] Channel: ${channel} - User: ${user} | ${statusCode} - ${list.length}`);
+        console.log(`[${url}] Channel: ${channel} - User: ${user} | ${statusCode} - ${list.length} days`);
 
         if (statusCode === 403) {
             return {
@@ -359,7 +359,7 @@ export class Utils {
 
         const instances = Object.keys(this.config.recentmessagesInstances);
         let { limit, rm_only } = searchParams;
-        limit = limit || 1000;
+        limit = Number(limit) || 1000;
         let messages = [];
 
         let statusMessage = null;
@@ -394,24 +394,23 @@ export class Utils {
 
             try {
                 if (logs.available.channel) {
-                    instanceLink = logs.channelLogs.instances[0];
+                    const instances = logs.channelLogs.instances;
+                    instanceLink = instances[0];
 
-                    const { body: logsMessages } = await this.request(`${instanceLink}/channel/${channel}?json=true&limit=${limit}`, {
+                    const { body } = await this.request(`${instanceLink}/channel/${channel}?limit=${limit}&raw&reverse`, {
                         headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                        responseType: 'json',
-                        https: {
-                            rejectUnauthorized: false,
-                        },
                         timeout: 5000,
                         http2: true,
                     });
 
-                    if (logsMessages?.messages?.length > messages.length) {
+                    const logsMessages = (body?.split(/\r?\n/) ?? []).reverse().slice(1);
+
+                    if (logsMessages?.length > messages.length) {
                         console.log(
-                            `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.messages.length} messages`,
+                            `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`,
                         );
 
-                        messages = logsMessages.messages.map((message) => message.raw);
+                        messages = logsMessages;
                         instance = instanceLink;
                         statusMessage = null;
                         errorCode = null;
