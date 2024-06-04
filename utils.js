@@ -385,7 +385,7 @@ export class Utils {
                 errorCode = body?.error_code || 'internal_server_error';
                 error = body?.error || 'Internal Server Error';
 
-                console.error(`[${entry}] Channel: ${channel} | ${status} - ${statusMessage}`);
+                console.error(`[${entry}] Channel: ${channel} | ${status} - ${error}`);
             }
         }
 
