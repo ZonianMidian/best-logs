@@ -362,27 +362,28 @@ export class Utils {
         limit = Number(limit) || 1000;
         let messages = [];
 
-        let statusMessage = null;
-        let errorCode = null;
-        let instance = null;
-        let status = null;
-        let error = null;
+        let statusMessage;
+        let errorCode;
+        let instance;
+        let status;
+        let error;
 
         for (const entry of instances) {
             const { body, statusCode } = await this.fetchMessages(entry, channel, searchParams);
+            statusMessage = body?.status_message;
+            instance = `https://${entry}`;
+            status = statusCode || 500;
 
             if (statusCode === 200 && body.messages.length) {
-                instance = `https://${entry}`;
+                errorCode = body.error_code;
                 messages = body.messages;
-                status = 200;
+                error = body.error;
 
                 console.log(`[${entry}] Channel: ${channel} | ${status} - ${messages.length} messages`);
                 break;
             } else {
-                statusMessage = body?.status_message || 'Internal Server Error';
                 errorCode = body?.error_code || 'internal_server_error';
                 error = body?.error || 'Internal Server Error';
-                status = statusCode || 500;
 
                 console.error(`[${entry}] Channel: ${channel} | ${status} - ${statusMessage}`);
             }
@@ -394,25 +395,25 @@ export class Utils {
 
             try {
                 if (logs.available.channel) {
-                    const instances = logs.channelLogs.instances;
-                    instanceLink = instances[0];
+                    instanceLink = logs.channelLogs.instances[0];
 
-                    const { body } = await this.request(`${instanceLink}/channel/${channel}?limit=${limit}&raw&reverse`, {
-                        headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-                        timeout: 5000,
-                        http2: true,
-                    });
+                    const { body } = await this.request(
+                        `${instanceLink}/channel/${channel}?limit=${limit}&raw&reverse`,
+                        {
+                            headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+                            timeout: 5000,
+                            http2: true,
+                        },
+                    );
 
                     const logsMessages = (body?.split(/\r?\n/) ?? []).reverse().slice(1);
+                    console.log(
+                        `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`,
+                    );
 
                     if (logsMessages?.length > messages.length) {
-                        console.log(
-                            `[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`,
-                        );
-
                         messages = logsMessages;
                         instance = instanceLink;
-                        statusMessage = null;
                         errorCode = null;
                         status = 200;
                         error = null;
@@ -431,7 +432,18 @@ export class Utils {
             s: Math.round((end - start) / 10) / 100,
         };
 
-        console.log(`- [RecentMessages] Channel: ${channel} | ${status} - [${messages.length}/${limit}] | ${elapsed.ms}ms`);
+        console.log(
+            `- [RecentMessages] Channel: ${channel} | ${status} - [${messages.length}/${limit}] | ${instance} | ${elapsed.ms}ms`,
+        );
+
+        const request = ((req) => ({
+            ...req,
+            ...Object.fromEntries(
+                Object.entries(searchParams)
+                    .filter(([key, value]) => !(key in req))
+                    .map(([key, value]) => [key, value === 'true' ? true : value === 'false' ? false : value]),
+            ),
+        }))({ channel, limit });
 
         return {
             status,
@@ -440,6 +452,7 @@ export class Utils {
             error_code: errorCode,
             instance,
             elapsed,
+            request,
             messages,
         };
     }
