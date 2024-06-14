@@ -223,7 +223,11 @@ const extractValue = (input, regex) => {
 	input = utils.formatUsername(input);
 	const match = input.match(regex);
 	if (match) {
-		return match[1];
+		const result = match[1];
+		if (input.match(/id[\/=]\d{1,}/)) {
+			return `id:${result}`;
+		}
+		return result;
 	}
 	return null;
 };
