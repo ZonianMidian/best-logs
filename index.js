@@ -60,6 +60,32 @@ app.get('/status', (req, res) => {
 	res.render('status', { instances, timestamp: utils.lastUpdated, nextUpdate: utils.reloadInterval });
 });
 
+async function sendStats(req, name, data = {}) {
+	const payload = {
+		hostname: req.hostname,
+		language: req.headers['accept-language'],
+		referrer: req.headers['referer'] || '',
+		url: req.originalUrl,
+		website: config.umamiStats.id,
+		name: name,
+		data,
+	};
+
+	try {
+		await got.post(`${config.umamiStats.url}/api/send`, {
+			headers: {
+				Authorization: `Bearer ${config.umamiStats.token}`,
+			},
+			json: {
+				payload,
+				type: 'event',
+			},
+		});
+	} catch (error) {
+		console.error('Error sending data to Umami:', error);
+	}
+}
+
 app.get('/rdr/:channel', async (req, res) => {
 	const channel = utils.formatUsername(req.params.channel);
 
@@ -77,6 +103,10 @@ app.get('/rdr/:channel', async (req, res) => {
 			res.status(instance.status);
 			return res.render('error', { error: instance.error, code: instance.status });
 		} else {
+			await sendStats(req, 'rdr', {
+				channel: channel ?? '',
+			});
+
 			res.status(302);
 			return res.redirect(instance?.channelLogs?.fullLink[0]);
 		}
@@ -108,6 +138,11 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 			res.status(instance.status);
 			return res.render('error', { error: instance.error, code: instance.status });
 		} else {
+			await sendStats(req, 'rdr', {
+				channel: channel ?? '',
+				user: user ?? '',
+			});
+
 			res.status(302);
 			return res.redirect(instance?.userLogs?.fullLink[0]);
 		}
@@ -121,6 +156,10 @@ app.get('/api/:channel', async (req, res) => {
 	const { force, pretty, plain } = req.query;
 	const channel = utils.formatUsername(req.params.channel);
 	let error = null;
+
+	await sendStats(req, 'api', {
+		channel: channel ?? '',
+	});
 
 	if (!utils.userChanRegex.test(channel)) error = `Invalid channel or channel ID: ${channel}`;
 
@@ -155,6 +194,11 @@ app.get('/api/:channel/:user', async (req, res) => {
 	const user = utils.formatUsername(req.params.user);
 	const isPlain = plain?.toLowerCase() === 'true';
 	let error = null;
+
+	await sendStats(req, 'api', {
+		channel: channel ?? '',
+		user: user ?? '',
+	});
 
 	if (!utils.userChanRegex.test(channel)) error = `Invalid channel or channel ID: ${channel}`;
 	if (!utils.userChanRegex.test(user)) error = `Invalid username or user ID: ${user}`;
@@ -202,6 +246,7 @@ const checkInstances = (obj) => {
 
 app.get('/instances', async (req, res) => {
 	const instances = Object.fromEntries(utils.instanceChannels);
+	await sendStats(req, 'instances');
 
 	res.json({
 		instancesStats: checkInstances(instances),
@@ -212,6 +257,7 @@ app.get('/instances', async (req, res) => {
 app.get('/channels', async (req, res) => {
 	const instances = Object.fromEntries(utils.instanceChannels);
 	const channels = Array.from(utils.uniqueChannels);
+	await sendStats(req, 'channels');
 
 	res.json({
 		instancesStats: checkInstances(instances),
@@ -236,6 +282,11 @@ const logsApi = async (req, res) => {
 	const channel = extractValue(req.url, utils.channelLinkRegex);
 	const user = extractValue(req.url, utils.userLinkRegex);
 	const { force } = req.query;
+
+	await sendStats(req, 'mirror', {
+		channel: channel ?? '',
+		user: user ?? '',
+	});
 
 	if (!channel) {
 		res.status(404);
@@ -283,6 +334,9 @@ app.get('/channelid/:endpoint(*)', logsApi);
 
 const getRecentMessages = async (req, res) => {
 	const channel = utils.formatUsername(req.params.channel);
+	await sendStats(req, 'recent-messages', {
+		channel: channel ?? '',
+	});
 
 	try {
 		const recentMessages = await utils.getRecentMessages(channel, req.query);

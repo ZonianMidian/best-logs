@@ -55,7 +55,8 @@
 		}
 	},
 	"umamiStats": {
-		"src": "https://umami.supa.codes/script.js",
-		"id": "9615b20e-47da-47c9-a9c1-40c3b6f7b7f3"
+		"token": "Wkv7apbiL/jakyYB2mGmd9K5WxGMBh41k0Gu6qZMZFUjeDDJuSpxj6LrJ34zZrHyUmq2m22L8JUobVLgQRwt+XGpcc98XYv7BUUdwC1rXLPTTdCRKKWwrZmk1SONvlQ1tkviC5BV5/SDSyTa06lHkzTNRzJ5aN23eVEX2UARg1f6Ju7TpoM8ud6m1CB8rvvdsz/xm0j/eWbfzkVeEprG1Eeuz7KQxZb/SJQ37LLjYlBhas8rCIR1OCYw6aEuRJOYCf/QWDmsfnIGY9xaDERDBmALBkwJFV+Lf+ZbYZLp1lQOlrjt132akHoRs3ca95af67+jOiOdOycBR5mo7IbXp8y1DPGM4T/gYA==",
+		"id": "9615b20e-47da-47c9-a9c1-40c3b6f7b7f3",
+		"url": "https://umami.supa.codes"
 	}
 }
