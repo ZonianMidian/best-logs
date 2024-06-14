@@ -41,20 +41,27 @@
                     <a class="nav-link" href="/status" data-umami-event="status">Status</a>
                 </li>
             </ul>
-            <form id="Search" onsubmit="search(); return false" method="get" action="" class="d-flex" role="search">
+            <form id="SearchForm" onsubmit="submitSearch(event)" class="d-flex" role="search">
                 <input id="channelInput" class="form-control me-2" type="search" placeholder="Channel" aria-label="Channel" autofocus required>
                 <input id="userInput" class="form-control me-2" type="search" placeholder="User" aria-label="User">
-                <button class="btn btn-light" type="submit" data-umami-event="search"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button type="submit" class="btn btn-light"><i class="fa-solid fa-magnifying-glass"></i></button>
             </form>
         </div>
     </div>
 </nav>
-<script>
-    function search() {
+<script defer>
+    function submitSearch(event) {
+        event.preventDefault();
+
         const channel = document.getElementById("channelInput").value.trim();
         const user = document.getElementById("userInput").value.trim();
 
-        window.open(`/rdr/${channel}/${user}`)
+        window.umami.track('search', {
+            channel: channel,
+            user: user
+        });
+
+        window.open(`/rdr/${encodeURIComponent(channel)}/${encodeURIComponent(user)}`);
     }
 </script>
 
