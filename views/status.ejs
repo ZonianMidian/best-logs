@@ -12,9 +12,9 @@
         <div class="container">
             <% for (let key in instances) { %>
                 <div class="card">
-                    <h2><a href="https://<%= key %>" target="_BLANK"><%= key %></a></h2>
+                    <h2><a href="https://<%= key %>" data-umami-event="instance-<%= key %>"><%= key %></a></h2>
                     <% if (instances[key].maintainer) { %>
-                        <h3>by <a href="https://twitch.tv/<%= instances[key].maintainer %>" target="_BLANK"><%= instances[key].maintainer %></a></h3>
+                        <h3>by <a href="https://twitch.tv/<%= instances[key].maintainer %>" data-umami-event="maintainer-<%= instances[key].maintainer %>"><%= instances[key].maintainer %></a></h3>
                     <% } else {%>
                         <h3>&#x200E;</h3>
                     <% } %>

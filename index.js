@@ -11,6 +11,12 @@ const __dirname = dirname(__filename);
 const utils = new Utils();
 const app = express();
 
+const config = utils.config;
+app.use((req, res, next) => {
+    res.locals.config = config;
+    next();
+});
+
 app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
 app.use('/static', express.static(`${__dirname}/static`));
 app.set('views', `${__dirname}/views`);
@@ -18,7 +24,7 @@ app.set('view engine', 'ejs');
 app.use(cors());
 
 app.get('/', (req, res) => {
-    const instances = Object.keys(utils.config.justlogsInstances);
+    const instances = Object.keys(config.justlogsInstances);
 
     res.render('index', { instances });
 });
@@ -28,7 +34,7 @@ app.get('/api', async (req, res) => {
 });
 
 app.get('/faq', (req, res) => {
-    const instances = Object.keys(utils.config.justlogsInstances);
+    const instances = Object.keys(config.justlogsInstances);
 
     res.render('faq', { instances });
 });
@@ -41,7 +47,7 @@ app.get('/contact', async (req, res) => {
 
 app.get('/status', (req, res) => {
     const channels = Object.fromEntries(utils.instanceChannels);
-    const instances = utils.config.justlogsInstances;
+    const instances = config.justlogsInstances;
 
     for (let key in instances) {
         if (channels[key]) {
@@ -301,7 +307,7 @@ app.use(function (err, req, res, next) {
     res.render('error', { error: err.message, code: status });
 });
 
-app.listen(utils.config.port, () => {
+app.listen(config.port, () => {
     utils.loopLoadInstanceChannels();
-    console.log(`- [Website] Listening on ${utils.config.port}`);
+    console.log(`- [Website] Listening on ${config.port}`);
 });

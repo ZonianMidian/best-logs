@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://bootswatch.com/5/solar/bootstrap.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <script
+        defer
+        src="<%= config.umamiStats.src %>"
+        data-website-id="<%= config.umamiStats.id %>"
+    ></script>
 </head>
 
 <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
@@ -24,30 +29,32 @@
         <div class="collapse navbar-collapse" id="navbarToggler">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="/api">API</a>
+                    <a class="nav-link" href="/api" data-umami-event="api">API</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/contact">Contact</a>
+                    <a class="nav-link" href="/contact" data-umami-event="contact">Contact</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/faq">FAQ</a>
+                    <a class="nav-link" href="/faq" data-umami-event="faq">FAQ</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/status">Status</a>
+                    <a class="nav-link" href="/status" data-umami-event="status">Status</a>
                 </li>
             </ul>
-            <form id="Search" onsubmit="newTab(); return false" method="get" action="" class="d-flex" role="search">
+            <form id="Search" onsubmit="search(); return false" method="get" action="" class="d-flex" role="search">
                 <input id="channelInput" class="form-control me-2" type="search" placeholder="Channel" aria-label="Channel" autofocus required>
-                <input id="userInput" class="form-control me-2" type="search" placeholder="User" aria-label="User" autofocus>
-                <button class="btn btn-light" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <input id="userInput" class="form-control me-2" type="search" placeholder="User" aria-label="User">
+                <button class="btn btn-light" type="submit" data-umami-event="search"><i class="fa-solid fa-magnifying-glass"></i></button>
             </form>
         </div>
     </div>
 </nav>
 <script>
-    function newTab() {
-        window.open(`/rdr/${document.getElementById("channelInput").value.trim()}/${document.getElementById("userInput").value.trim()}`
-        ,'_blank')
+    function search() {
+        const channel = document.getElementById("channelInput").value.trim();
+        const user = document.getElementById("userInput").value.trim();
+
+        window.open(`/rdr/${channel}/${user}`)
     }
 </script>
 

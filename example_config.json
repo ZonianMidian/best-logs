@@ -53,5 +53,9 @@
         "recent-messages.robotty.de": {
             "maintainer": "randers"
         }
+    },
+    "umamiStats": {
+        "src": "https://umami.supa.codes/script.js",
+        "id": "9615b20e-47da-47c9-a9c1-40c3b6f7b7f3"
     }
 }
