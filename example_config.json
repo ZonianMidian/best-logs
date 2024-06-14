@@ -1,61 +1,61 @@
 {
-    "port": 2028,
-    "justlogsInstances": {
-        "logs.spanix.team": {
-            "maintainer": "ZonianMidian"
-        },
-        "logs.nadeko.net": {
-            "maintainer": "Fijxu"
-        },
-        "logs.ivr.fi": {
-            "maintainer": "Leppunen"
-        },
-        "logs.2807.eu": {
-            "maintainer": "florian_2807"
-        },
-        "harambelogs.pl": {
-            "maintainer": "zneix",
-            "alternate": "logs.zneix.eu"
-        },
-        "vtlogs.moe": {
-            "maintainer": ""
-        },
-        "logs.magichack.xyz": {
-            "maintainer": "HackMagic"
-        },
-        "logs.lucas19961.de": {
-            "maintainer": "lucas19961",
-            "alternate": "logsback.susgee.dev"
-        },
-        "logs.jimmyboy.dev": {
-            "maintainer": "devJimmyboy"
-        },
-        "logs.flake.sh": {
-            "maintainer": "notohh"
-        },
-        "logs.potat.app": {
-            "maintainer": "RyanPotat"
-        },
-        "logs.supa.codes": {
-            "maintainer": "Supelle"
-        },
-        "logs.choccy.bar": {
-            "maintainer": "CHOCCY"
-        },
-        "justlog.kkx.one": {
-            "maintainer": "33KK"
-        }
-    },
-    "recentmessagesInstances": {
-        "recent-messages.zneix.eu": {
-            "maintainer": "zneix"
-        },
-        "recent-messages.robotty.de": {
-            "maintainer": "randers"
-        }
-    },
-    "umamiStats": {
-        "src": "https://umami.supa.codes/script.js",
-        "id": "9615b20e-47da-47c9-a9c1-40c3b6f7b7f3"
-    }
+	"port": 2028,
+	"justlogsInstances": {
+		"logs.spanix.team": {
+			"maintainer": "ZonianMidian"
+		},
+		"logs.nadeko.net": {
+			"maintainer": "Fijxu"
+		},
+		"logs.ivr.fi": {
+			"maintainer": "Leppunen"
+		},
+		"logs.2807.eu": {
+			"maintainer": "florian_2807"
+		},
+		"harambelogs.pl": {
+			"maintainer": "zneix",
+			"alternate": "logs.zneix.eu"
+		},
+		"vtlogs.moe": {
+			"maintainer": ""
+		},
+		"logs.magichack.xyz": {
+			"maintainer": "HackMagic"
+		},
+		"logs.lucas19961.de": {
+			"maintainer": "lucas19961",
+			"alternate": "logsback.susgee.dev"
+		},
+		"logs.jimmyboy.dev": {
+			"maintainer": "devJimmyboy"
+		},
+		"logs.flake.sh": {
+			"maintainer": "notohh"
+		},
+		"logs.potat.app": {
+			"maintainer": "RyanPotat"
+		},
+		"logs.supa.codes": {
+			"maintainer": "Supelle"
+		},
+		"logs.choccy.bar": {
+			"maintainer": "CHOCCY"
+		},
+		"justlog.kkx.one": {
+			"maintainer": "33KK"
+		}
+	},
+	"recentmessagesInstances": {
+		"recent-messages.zneix.eu": {
+			"maintainer": "zneix"
+		},
+		"recent-messages.robotty.de": {
+			"maintainer": "randers"
+		}
+	},
+	"umamiStats": {
+		"src": "https://umami.supa.codes/script.js",
+		"id": "9615b20e-47da-47c9-a9c1-40c3b6f7b7f3"
+	}
 }
