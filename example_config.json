@@ -23,9 +23,8 @@
 		"logs.magichack.xyz": {
 			"maintainer": "HackMagic"
 		},
-		"logs.lucas19961.de": {
-			"maintainer": "lucas19961",
-			"alternate": "logsback.susgee.dev"
+		"logs.susgee.dev": {
+			"maintainer": "lucas19961"
 		},
 		"logs.jimmyboy.dev": {
 			"maintainer": "devJimmyboy"
