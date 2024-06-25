@@ -395,7 +395,7 @@ export class Utils {
 					const logsMessages = (body?.split(/\r?\n/) ?? []).reverse().slice(1);
 					console.log(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`);
 
-					if (logsMessages?.length > messages.length) {
+					if (logsMessages?.length >= messages.length) {
 						messages = logsMessages;
 						instance = instanceLink;
 						errorCode = null;
