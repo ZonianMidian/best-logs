@@ -56,10 +56,12 @@
         const channel = document.getElementById("channelInput").value.trim();
         const user = document.getElementById("userInput").value.trim();
 
-        window.umami.track('search', {
-            channel: channel,
-            user: user
-        });
+        if (window.umami) {
+            window.umami.track('search', {
+                channel: channel,
+                user: user
+            });
+        }
 
         window.open(`/rdr/${encodeURIComponent(channel)}/${encodeURIComponent(user)}`);
     }
