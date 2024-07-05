@@ -378,6 +378,8 @@ export class Utils {
 			}
 		}
 
+		messages = messages.filter(str => !str.includes(":tmi.twitch.tv ROOMSTATE #"))
+
 		if (!rm_only || rm_only !== 'true') {
 			const logs = await this.getInstance(channel);
 			let instanceLink = 'Logs';
