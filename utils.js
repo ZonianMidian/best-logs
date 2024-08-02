@@ -295,7 +295,7 @@ export class Utils {
 		let statusCode = this.statusCodes.get(instanceCacheKey);
 
 		if (!statusCode || force) {
-			statusCode = await this.request(`https://${instanceURL}/${channelPath}/${channelClean}/${userPath}/${userClean}`, {
+			statusCode = await this.request(`https://${instanceURL}/list?${channelPath}=${channelClean}&${userPath}=${userClean}`, {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 				https: {
 					rejectUnauthorized: false,
