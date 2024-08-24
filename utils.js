@@ -77,7 +77,7 @@ export class Utils {
 					const currentInstanceChannels = logsData.body.channels;
 
 					for (const channel of logsData.body.channels) {
-						this.uniqueChannels.add(channel);
+						this.addChannel(channel);
 					}
 
 					this.instanceChannels.set(url, currentInstanceChannels);
@@ -96,6 +96,13 @@ export class Utils {
 		this.statusCodes.clear();
 
 		console.log(`- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${this.instanceChannels.size} instances`);
+	}
+
+	addChannel(channel) {
+		const set = this.uniqueChannels;
+		if (![...set].some(item => item.userID === channel.userID)) {
+			this.uniqueChannels.add(channel);
+		}
 	}
 
 	async loopLoadInstanceChannels(noLogs) {
