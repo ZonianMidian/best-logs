@@ -402,6 +402,20 @@ export class Utils {
 					});
 
 					const logsMessages = (body?.split(/\r?\n/) ?? []).reverse().slice(1);
+
+
+					//
+					// This adds the `historical=1` tag to the beginning of each message.
+					//
+					// This is needed because Chatterino relies on this tag to 
+					// differentiate between historical and recent messages, resulting in issues.
+					//
+
+					for (let i = 0; i < logsMessages.length; i += 1) {
+						// If you request the tags capability all messages start with @
+						logsMessages[i] = "@historical=1;" + logsMessages[i].substring(1);
+					}
+
 					console.log(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`);
 
 					if (logsMessages?.length >= messages.length) {
