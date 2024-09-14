@@ -12,7 +12,7 @@
         <h1>API</h1>
         
         <kbd>api/:channel/:user</kbd>
-        <p>API for a user's logs in a channel<br>
+        <p>Details for a user's available logs<br>
         <ul style="list-style: none;">
             <li><b>:channel</b> - It can be a username (TenkSit) or an id (id:557479550)</li>
             <li><b>:user (Optional)</b> - It can be a username (vicesmile) or an id (id:187698721)</li>
@@ -30,7 +30,7 @@
         <h1>Redirect</h1>
 
         <kbd>rdr/:channel/:user</kbd>
-        <p>Automatic redirection to a user's logs on a channel<br>
+        <p>Simple redirect to an available instace for the user's logs<br>
         <ul style="list-style: none;">
             <li><b>:channel</b> - It can be a username (NOTLUSHIN) or an id (id:410014058)</li>
             <li><b>:user (Optional)</b> - It can be a username (Drapsnatt) or an id (id:43547909)</li>
@@ -47,7 +47,7 @@
         <h1>Instances</h1>
 
         <kbd>instances</kbd>
-        <p>Get the list of instances<br>
+        <p>List of tracked logging instances<br>
         <br>
         <b>Example:</b><br>
         <a data-umami-event="endpoint-instances" href="/instances">https://logs.zonian.dev/instances</a></p>
@@ -55,7 +55,7 @@
         <h1>Channels</h1>
 
         <kbd>channels</kbd>
-        <p>Get the list of unique channels<br>
+        <p>List of unique channels across all instances<br>
         <br>
         <b>Example:</b><br>
         <a data-umami-event="endpoint-channels" href="/channels">https://logs.zonian.dev/channels</a></p>
@@ -63,7 +63,7 @@
         <h1>Recent Messages</h1>
 
         <kbd>rm/:channel</kbd>
-        <p>The most complete data of recent-messages<br>
+        <p>Most complete history from a recent-messages instance<br>
         <ul style="list-style: none;">
             <li><b>:channel</b> - It can only be a username (AlkalineXTw)</li>
         </ul>
