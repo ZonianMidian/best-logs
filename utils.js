@@ -100,7 +100,7 @@ export class Utils {
 
 	addChannel(channel) {
 		const set = this.uniqueChannels;
-		if (![...set].some(item => item.userID === channel.userID)) {
+		if (![...set].some((item) => item.userID === channel.userID)) {
 			this.uniqueChannels.add(channel);
 		}
 	}
@@ -221,6 +221,7 @@ export class Utils {
 				channel: channelInstances.length > 0,
 			},
 			loggedData: {
+				list: channelList,
 				days: channelList.length,
 				since: channelList[channelList.length - 1] ?? null,
 			},
@@ -350,6 +351,30 @@ export class Utils {
 		});
 	}
 
+	async fetchRustlogs(instance, channel, date, limit) {
+		const { body } = await this.request(`${instance}/channel/${channel}/${date.year}/${date.month}/${date.day}?limit=${limit}&raw&reverse`, {
+			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+			timeout: 5000,
+			http2: true,
+		});
+
+		const logsMessages = (body?.split(/\r?\n/) ?? []).reverse().slice(1);
+
+		//
+		// This adds the `historical=1` tag to the beginning of each message.
+		//
+		// This is needed because Chatterino relies on this tag to
+		// differentiate between historical and recent messages, resulting in issues.
+		//
+
+		for (let i = 0; i < logsMessages.length; i += 1) {
+			// If you request the tags capability all messages start with @
+			logsMessages[i] = '@historical=1;' + logsMessages[i].substring(1);
+		}
+
+		return logsMessages;
+	}
+
 	async getRecentMessages(channel, searchParams) {
 		const start = performance.now();
 
@@ -385,7 +410,7 @@ export class Utils {
 			}
 		}
 
-		messages = messages.filter(str => !str.includes(":tmi.twitch.tv ROOMSTATE #"))
+		messages = messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));
 
 		if (!rm_only || rm_only !== 'true') {
 			const logs = await this.getInstance(channel);
@@ -394,26 +419,18 @@ export class Utils {
 			try {
 				if (logs.available.channel) {
 					instanceLink = logs.channelLogs.instances[0];
+					const list = logs.loggedData.list;
 
-					const { body } = await this.request(`${instanceLink}/channel/${channel}?limit=${limit}&raw&reverse`, {
-						headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-						timeout: 5000,
-						http2: true,
-					});
+					let logsMessages = [];
+					let totalMessages = 0;
+					let daysFetched = 0;
+					const maxDays = 7;
 
-					const logsMessages = (body?.split(/\r?\n/) ?? []).reverse().slice(1);
-
-
-					//
-					// This adds the `historical=1` tag to the beginning of each message.
-					//
-					// This is needed because Chatterino relies on this tag to 
-					// differentiate between historical and recent messages, resulting in issues.
-					//
-
-					for (let i = 0; i < logsMessages.length; i += 1) {
-						// If you request the tags capability all messages start with @
-						logsMessages[i] = "@historical=1;" + logsMessages[i].substring(1);
+					while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
+						const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages);
+						logsMessages = [...dayLogs, ...logsMessages];
+						totalMessages += dayLogs.length;
+						daysFetched++;
 					}
 
 					console.log(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`);

@@ -10,7 +10,7 @@ You can create a [GitHub Issue](https://github.com/ZonianMidian/best-logs/issues
 
 ## Installation
 
--   `git clone https://github.com/ZonianMidian/best-logs.git`
--   `cd best-logs`
--   `npm install`
--   `npm run start`
+- `git clone https://github.com/ZonianMidian/best-logs.git`
+- `cd best-logs`
+- `npm install`
+- `npm run start`
