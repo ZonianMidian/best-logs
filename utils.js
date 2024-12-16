@@ -427,9 +427,15 @@ export class Utils {
 					const maxDays = 7;
 
 					while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
-						const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages);
-						logsMessages = [...dayLogs, ...logsMessages];
-						totalMessages += dayLogs.length;
+						try {
+							const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages);
+							logsMessages = [...dayLogs, ...logsMessages];
+							totalMessages += dayLogs.length;
+						} catch (dayError) {
+							if (daysFetched === 0) {
+								throw dayError;
+							}
+						}
 						daysFetched++;
 					}
 
