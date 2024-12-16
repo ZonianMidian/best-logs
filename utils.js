@@ -368,8 +368,17 @@ export class Utils {
 		//
 
 		for (let i = 0; i < logsMessages.length; i += 1) {
+			let message = logsMessages[i];
+
+			// Add the tag "tmi-sent-ts=XXXX;"
+			const match = message.match(/tmi-sent-ts=(\d+);/);
+			if (match) {
+				const timestamp = match[1];
+				message = message.replace(`tmi-sent-ts=${timestamp};`, `tmi-sent-ts=${timestamp};rm-received-ts=${timestamp};`);
+			}
+
 			// If you request the tags capability all messages start with @
-			logsMessages[i] = '@historical=1;' + logsMessages[i].substring(1);
+			logsMessages[i] = '@historical=1;' + message.substring(1);
 		}
 
 		return logsMessages;
