@@ -35,7 +35,7 @@ export class Utils {
 	instanceChannels = new Map();
 	uniqueChannels = new Set();
 	statusCodes = new Map();
-	lengthData = new Map();
+	listData = new Map();
 
 	reloadInterval = 1 * 60 * 60 * 1000;
 	lastUpdated = Date.now();
@@ -94,6 +94,7 @@ export class Utils {
 
 		this.lastUpdated = Date.now();
 		this.statusCodes.clear();
+		this.listData.clear();
 
 		console.log(`- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${this.instanceChannels.size} instances`);
 	}
@@ -258,8 +259,8 @@ export class Utils {
 		if (!channels.length) return { Status: 0 };
 		if (!channels.includes(channelClean)) return { Status: 3 };
 
-		const listCacheKey = `logs:length:${url}:${channel.replace('id:', 'id-')}`;
-		let list = this.lengthData.get(listCacheKey);
+		const listCacheKey = `logs:list:${url}:${channel.replace('id:', 'id-')}`;
+		let list = this.listData.get(listCacheKey);
 
 		if (!list || force) {
 			list = await got(`https://${instanceURL}/list?${channelPath}=${channelClean}`, {
@@ -274,8 +275,6 @@ export class Utils {
 					const data = JSON.parse(response.body);
 					const availableLogsLength = data?.availableLogs ?? [];
 
-					this.lengthData.set(listCacheKey, availableLogsLength);
-
 					return availableLogsLength;
 				})
 				.catch((err) => {
@@ -283,7 +282,7 @@ export class Utils {
 					return [];
 				});
 
-			this.lengthData.set(listCacheKey, list);
+			this.listData.set(listCacheKey, list);
 		}
 
 		if (!user) {
