@@ -291,7 +291,7 @@ export class Utils {
 			return {
 				Status: 2,
 				Link: `https://${url}`,
-				channelFull: pretty ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` : `https://${url}/?channel=${channel}`,
+				channelFull: pretty ? `https://logs.awoo.nl/${url}/${channelPath}/${channelClean}` : `https://${url}/?channel=${channel}`,
 				list,
 			};
 		}
@@ -317,10 +317,10 @@ export class Utils {
 		}
 
 		const fullLink = pretty
-			? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`
+			? `https://logs.awoo.nl/${url}/${channelPath}/${channelClean}/${userPath}/${userClean}`
 			: `https://${url}/?channel=${channel}&username=${user}`;
 
-		const channelFull = pretty ? `https://logs.raccatta.cc/${url}/${channelPath}/${channelClean}` : `https://${url}/?channel=${channel}`;
+		const channelFull = pretty ? `https://logs.awoo.nl/${url}/${channelPath}/${channelClean}` : `https://${url}/?channel=${channel}`;
 
 		console.log(`[${url}] Channel: ${channel} - User: ${user} | ${statusCode} - ${list.length} days`);
 
