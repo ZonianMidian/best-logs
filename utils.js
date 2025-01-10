@@ -51,10 +51,30 @@ export class Utils {
 	}
 
 	async request(url, options) {
-		return Promise.race([
-			got(url, options),
-			new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), options.timeout)),
-		]);
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), options.timeout);
+
+		try {
+			const response = await got(url, {
+				...options,
+				signal: controller.signal,
+			});
+
+			return response;
+		} catch (err) {
+			switch (err?.name) {
+				case 'RequestError':
+					throw new Error(`Request timed out after ${options.timeout}ms`);
+
+				case 'HTTPError':
+					throw new Error(`Error ${err.message.replace(' (undefined)', '')}`);
+
+				default:
+					throw err;
+			}
+		} finally {
+			clearTimeout(timeoutId);
+		}
 	}
 
 	async loadInstanceChannels(noLogs) {
