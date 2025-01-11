@@ -54,24 +54,31 @@ export class Utils {
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), options.timeout);
 
+		const timeoutPromise = new Promise((_, reject) => {
+			setTimeout(() => reject(new Error(`Request timed out after ${options.timeout}ms`)), options.timeout);
+		});
+
 		try {
-			const response = await got(url, {
-				...options,
-				signal: controller.signal,
-			});
+			const response = await Promise.race([
+				got(url, {
+					...options,
+					retry: 0,
+					signal: controller.signal,
+				}),
+				timeoutPromise,
+			]);
 
 			return response;
 		} catch (err) {
-			switch (err?.name) {
-				case 'RequestError':
-					throw new Error(`Request timed out after ${options.timeout}ms`);
-
-				case 'HTTPError':
-					throw new Error(`Error ${err.message.replace(' (undefined)', '')}`);
-
-				default:
-					throw err;
+			if (err.name === 'RequestError') {
+				throw new Error(`Request timed out after ${options.timeout}ms`);
 			}
+
+			if (err.name === 'HTTPError') {
+				throw new Error(`Error ${err.message.replace(' (undefined)', '')}`);
+			}
+
+			throw err;
 		} finally {
 			clearTimeout(timeoutId);
 		}
@@ -106,7 +113,11 @@ export class Utils {
 						console.log(`[${url}] Loaded ${currentInstanceChannels.length} channels`);
 					}
 				} catch (err) {
-					console.error(`[${url}] Failed loading channels: ${err.message}`);
+					let error = err.message;
+					if (err.name === 'ParseError') {
+						error = 'Invalid JSON';
+					}
+					console.error(`[${url}] Failed loading channels: ${error}`);
 					this.instanceChannels.set(url, []);
 				}
 			}),
