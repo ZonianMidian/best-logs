@@ -456,40 +456,69 @@ export class Utils {
 			let instanceLink = 'Logs';
 
 			try {
-				if (logs.available.channel) {
-					instanceLink = logs.channelLogs.instances[0];
-					const list = logs.loggedData.list;
+				const instances = logs.channelLogs.instances;
+				const maxRetries = 3;
+				let instanceIndex = 0;
+				let success = false;
+				let retries = 0;
 
-					let logsMessages = [];
-					let totalMessages = 0;
-					let daysFetched = 0;
-					const maxDays = 7;
+				while (retries < maxRetries && instanceIndex < instances.length && !success) {
+					instanceLink = instances[instanceIndex];
+					try {
+						if (logs.available.channel) {
+							const list = logs.loggedData.list;
 
-					while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
-						try {
-							const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages);
-							logsMessages = [...dayLogs, ...logsMessages];
-							totalMessages += dayLogs.length;
-						} catch (dayError) {
-							if (daysFetched === 0) {
-								throw dayError;
+							let logsMessages = [];
+							let totalMessages = 0;
+							let daysFetched = 0;
+							const maxDays = 7;
+
+							while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
+								try {
+									const dayLogs = await this.fetchRustlogs(
+										instanceLink,
+										channel,
+										list[daysFetched],
+										limit - totalMessages
+									);
+									logsMessages = [...dayLogs, ...logsMessages];
+									totalMessages += dayLogs.length;
+								} catch (dayError) {
+									if (daysFetched === 0) {
+										throw dayError;
+									}
+								}
+								daysFetched++;
+							}
+
+							console.log(
+								`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`
+							);
+
+							if (logsMessages?.length >= messages.length) {
+								messages = logsMessages;
+								instance = instanceLink;
+								errorCode = null;
+								success = true;
+								status = 200;
+								error = null;
 							}
 						}
-						daysFetched++;
-					}
-
-					console.log(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`);
-
-					if (logsMessages?.length >= messages.length) {
-						messages = logsMessages;
-						instance = instanceLink;
-						errorCode = null;
-						status = 200;
-						error = null;
+					} catch (err) {
+						console.error(
+							`[${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`
+						);
+						retries++;
+					} finally {
+						instanceIndex++;
 					}
 				}
+
+				if (!success) {
+					throw new Error(`Failed to fetch logs after ${retries + 1} retries`);
+				}
 			} catch (err) {
-				console.error(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`);
+				console.error(`- [RecentMessages] Channel: ${channel} | ${err.message}`);
 			}
 		}
 
