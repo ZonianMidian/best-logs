@@ -546,6 +546,7 @@ export class Utils {
 			error_code: errorCode,
 			instance,
 			elapsed,
+			count: messages.length,
 			request,
 			messages,
 		};
