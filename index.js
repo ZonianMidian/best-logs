@@ -82,7 +82,7 @@ async function sendStats(req, name, data = {}) {
 			},
 		});
 	} catch (err) {
-		console.error(`- [Umami] Error sending data: ${err.message}`, data);
+		console.error(`- [Umami] Error sending '${name}' data: ${err.message} - `, data);
 	}
 }
 
