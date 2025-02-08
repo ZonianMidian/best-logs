@@ -333,8 +333,16 @@ app.get('/channel/:endpoint(*)', logsApi);
 app.get('/channelid/:endpoint(*)', logsApi);
 
 app.get('/namehistory/:user', async (req, res) => {
+	const user = req.params.user;
+
+	if (user.startsWith('login:')) {
+		await sendStats(req, 'namehistory', { login: user });
+	} else {
+		await sendStats(req, 'namehistory', { id: user.replace('id:', '') });
+	}
+
 	try {
-		const result = await utils.getNameHistory(req.params.user);
+		const result = await utils.getNameHistory(user);
 
 		if (!Array.isArray(result)) {
 			res.status(500);
