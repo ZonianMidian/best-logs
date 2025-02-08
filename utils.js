@@ -475,12 +475,7 @@ export class Utils {
 
 							while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
 								try {
-									const dayLogs = await this.fetchRustlogs(
-										instanceLink,
-										channel,
-										list[daysFetched],
-										limit - totalMessages
-									);
+									const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages);
 									logsMessages = [...dayLogs, ...logsMessages];
 									totalMessages += dayLogs.length;
 								} catch (dayError) {
@@ -491,9 +486,7 @@ export class Utils {
 								daysFetched++;
 							}
 
-							console.log(
-								`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`
-							);
+							console.log(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | 200 - ${logsMessages.length} messages`);
 
 							if (logsMessages?.length >= messages.length) {
 								messages = logsMessages;
@@ -505,9 +498,7 @@ export class Utils {
 							}
 						}
 					} catch (err) {
-						console.error(
-							`[${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`
-						);
+						console.error(`[${instanceLink.replace('https://', '')}] Channel: ${channel} | Failed loading messages: ${err.message}`);
 						retries++;
 					} finally {
 						instanceIndex++;
@@ -550,6 +541,70 @@ export class Utils {
 			request,
 			messages,
 		};
+	}
+
+	async getNameHistory(user) {
+		user = user.replace(/^id:/, '');
+
+		if (!user.startsWith('login:') && isNaN(user)) {
+			return "The value must be an ID or use 'login:' to refer to usernames. Example: 754201843 or login:zonianmidian";
+		}
+
+		if (user.startsWith('login:')) {
+			user = user.replace('login:', '');
+			try {
+				const userInfo = await this.getInfo(user);
+				user = userInfo?.id;
+				if (!user) throw new Error('User ID not found');
+			} catch (err) {
+				console.error(`- [NameHistory] Failed to get user ID: ${err.message}`);
+				return [];
+			}
+		}
+
+		let nameHistory = [];
+
+		await Promise.allSettled(
+			Object.keys(this.config.justlogsInstances).map(async (url) => {
+				try {
+					const instanceURL = this.config.justlogsInstances[url]?.alternate ?? url;
+					const historyData = await this.request(`https://${instanceURL}/namehistory/${user}`, {
+						headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+						https: { rejectUnauthorized: false },
+						responseType: 'json',
+						timeout: 10000,
+						http2: true,
+					});
+
+					if (historyData.statusCode !== 200 || !Array.isArray(historyData.body)) return;
+
+					console.log(`[${url}] Found ${historyData.body.length} registered usernames for ID ${user}`);
+
+					for (const newEntry of historyData.body) {
+						const existingEntry = nameHistory.find((entry) => entry.user_login === newEntry.user_login);
+
+						if (existingEntry) {
+							if (new Date(newEntry.last_timestamp) > new Date(existingEntry.last_timestamp)) {
+								existingEntry.last_timestamp = newEntry.last_timestamp;
+							}
+							if (new Date(newEntry.first_timestamp) < new Date(existingEntry.first_timestamp)) {
+								existingEntry.first_timestamp = newEntry.first_timestamp;
+							}
+						} else {
+							nameHistory.push({ ...newEntry });
+						}
+					}
+				} catch (err) {
+					// console.error(`[${url}] Failed to fetch name history: ${err.message}`);
+				}
+			}),
+		);
+
+		nameHistory.sort((a, b) => new Date(a.last_timestamp) - new Date(b.last_timestamp));
+
+		console.log(`- [NameHistory] Found ${nameHistory.length} unique usernames for ID ${user}`);
+
+		return nameHistory;
 	}
 
 	async getInfo(user) {

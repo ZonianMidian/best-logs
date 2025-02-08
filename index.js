@@ -332,6 +332,24 @@ app.get('/list', logsApi);
 app.get('/channel/:endpoint(*)', logsApi);
 app.get('/channelid/:endpoint(*)', logsApi);
 
+app.get('/namehistory/:user', async (req, res) => {
+	try {
+		const result = await utils.getNameHistory(req.params.user);
+
+		if (!Array.isArray(result)) {
+			res.status(500);
+			res.contentType('text/plain');
+			return res.send(result);
+		}
+
+		res.json(result);
+	} catch (err) {
+		res.status(500);
+		res.contentType('text/plain');
+		return res.send(`Internal error${err.message ? ` - ${err.message}` : ''}`);
+	}
+});
+
 const getRecentMessages = async (req, res) => {
 	const channel = utils.formatUsername(req.params.channel);
 	await sendStats(req, 'recent-messages', {
