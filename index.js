@@ -336,7 +336,7 @@ app.get('/namehistory/:user', async (req, res) => {
 	const user = req.params.user;
 
 	if (user.startsWith('login:')) {
-		await sendStats(req, 'namehistory', { login: user });
+		await sendStats(req, 'namehistory', { login: user.replace('login:', '') });
 	} else {
 		await sendStats(req, 'namehistory', { id: user.replace('id:', '') });
 	}
