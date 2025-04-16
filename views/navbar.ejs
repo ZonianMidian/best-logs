@@ -1,70 +1,68 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: https://ogp.me/ns#">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=0.6" />
+		<meta property="og:url" content="https://logs.zonian.dev/" />
+		<meta name="keywords" content="twitch, chat, logs" />
+		<meta property="og:type" content="website" />
+		<meta name="application-name" content="Best Logs" />
+		<link rel="stylesheet" href="/static/main.css" />
+		<link rel="stylesheet" href="https://bootswatch.com/5/solar/bootstrap.min.css" />
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+		<script defer src="<%= config.umamiStats.url %>/script.js" data-website-id="<%= config.umamiStats.id %>"></script>
+	</head>
 
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=0.6" />
-    <meta property="og:url" content="https://logs.zonian.dev/" />
-    <meta name="keywords" content="twitch, chat, logs" />
-    <meta property="og:type" content="website" />
-    <meta name="application-name" content="Best Logs" />
-    <link rel="stylesheet" href="/static/main.css" />
-    <link rel="stylesheet" href="https://bootswatch.com/5/solar/bootstrap.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <script
-        defer
-        src="<%= config.umamiStats.url %>/script.js"
-        data-website-id="<%= config.umamiStats.id %>"
-    ></script>
-</head>
+	<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="/"> <img class="navbarImage" src="/static/DankG.png" title="BestLogs" alt="BestLogs" />Best Logs</a>
+			<button
+				class="navbar-toggler"
+				type="button"
+				data-bs-toggle="collapse"
+				data-bs-target="#navbarToggler"
+				aria-controls="navbarToggler"
+				aria-expanded="false">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarToggler">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+					<li class="nav-item">
+						<a class="nav-link" href="/api" data-umami-event="navbar-api">API</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/contact" data-umami-event="navbar-contact">Contact</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/faq" data-umami-event="navbar-faq">FAQ</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/status" data-umami-event="navbar-status">Status</a>
+					</li>
+				</ul>
+				<form id="SearchForm" onsubmit="submitSearch(event)" class="d-flex" role="search">
+					<input id="channelInput" class="form-control me-2" type="search" placeholder="Channel" aria-label="Channel" autofocus required />
+					<input id="userInput" class="form-control me-2" type="search" placeholder="User" aria-label="User" />
+					<button type="submit" class="btn btn-light"><i class="fa-solid fa-magnifying-glass"></i></button>
+				</form>
+			</div>
+		</div>
+	</nav>
+	<script defer>
+		function submitSearch(event) {
+			event.preventDefault();
 
-<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">
-            <img class="navbarImage" src="/static/DankG.png" title="BestLogs" alt="BestLogs" />Best Logs</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler"
-            aria-controls="navbarToggler" aria-expanded="false">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarToggler">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="/api" data-umami-event="navbar-api">API</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/contact" data-umami-event="navbar-contact">Contact</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/faq" data-umami-event="navbar-faq">FAQ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/status" data-umami-event="navbar-status">Status</a>
-                </li>
-            </ul>
-            <form id="SearchForm" onsubmit="submitSearch(event)" class="d-flex" role="search">
-                <input id="channelInput" class="form-control me-2" type="search" placeholder="Channel" aria-label="Channel" autofocus required>
-                <input id="userInput" class="form-control me-2" type="search" placeholder="User" aria-label="User">
-                <button type="submit" class="btn btn-light"><i class="fa-solid fa-magnifying-glass"></i></button>
-            </form>
-        </div>
-    </div>
-</nav>
-<script defer>
-    function submitSearch(event) {
-        event.preventDefault();
+			const channel = document.getElementById('channelInput').value.trim();
+			const user = document.getElementById('userInput').value.trim();
 
-        const channel = document.getElementById("channelInput").value.trim();
-        const user = document.getElementById("userInput").value.trim();
+			if (window.umami) {
+				window.umami.track('search', {
+					channel: channel,
+					user: user,
+				});
+			}
 
-        if (window.umami) {
-            window.umami.track('search', {
-                channel: channel,
-                user: user
-            });
-        }
-
-        window.open(`/rdr/${encodeURIComponent(channel)}/${encodeURIComponent(user)}`);
-    }
-</script>
-
+			window.open(`/rdr/${encodeURIComponent(channel)}/${encodeURIComponent(user)}`);
+		}
+	</script>
 </html>

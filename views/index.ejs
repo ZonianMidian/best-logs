@@ -1,56 +1,39 @@
 <%- include('navbar') -%>
 <head>
-    <title>Best Logs</title>
-    <meta
-        name="description"
-        content="Logs finder for Twitch"
-    />
-    <meta property="og:title" content="Best Logs" />
-    <meta property="og:image" content="/static/DankG.png" />
-    <meta
-        property="og:description"
-        content="Logs finder for Twitch"
-    />
+	<title>Best Logs</title>
+	<meta name="description" content="Logs finder for Twitch" />
+	<meta property="og:title" content="Best Logs" />
+	<meta property="og:image" content="/static/DankG.png" />
+	<meta property="og:description" content="Logs finder for Twitch" />
 </head>
 <body>
-    <div class="text-center margin">
-        <img src="/static/DankG.gif" alt="DankG" />
-        <blockquote class="blockquote margin">
-            <h1>About</h1>
-            <p class="col-md-4 offset-md-4">
-                This website does not store information of any kind, it only 
-                intends to collect public information about user logs in Twitch 
-                chats, and display them to visitors in a nice and clean way.
-            </p>
-        </blockquote>
-        <blockquote class="blockquote margin">
-            <h1>Usage</h1>
-            <p class="col-md-4 offset-md-4">
-                Go to the
-                <a href="/api" style="text-decoration: none" data-umami-event="link-api"
-                    >API</a
-                >
-                section for more details on how to use this service.
-            </p>
-        </blockquote>
-        <blockquote class="blockquote margin">
-            <h1>Used Data & APIs</h1>
-            <p class="col-md-4 offset-md-4">
-                The data is currently obtained from the following providers:
-            </p>
-            <ul style="display: inline-block; text-align: initial;">
-                <% for (const data of instances) { %>
-                <li>
-                    <a
-                        href="https://<%= data %>"
-                        style="text-decoration: none;"
-                        data-umami-event="instance-<%= data %>"
-                    >
-                        <%= data %></a
-                    >
-                </li>
-                <% } %>
-            </ul>
-        </blockquote>
-    </div>
+	<div class="text-center margin">
+		<img src="/static/DankG.gif" alt="DankG" />
+		<blockquote class="blockquote margin">
+			<h1>About</h1>
+			<p class="col-md-4 offset-md-4">
+				This website does not store information of any kind, it only intends to collect public information about user logs in Twitch chats,
+				and display them to visitors in a nice and clean way.
+			</p>
+		</blockquote>
+		<blockquote class="blockquote margin">
+			<h1>Usage</h1>
+			<p class="col-md-4 offset-md-4">
+				Go to the
+				<a href="/api" style="text-decoration: none" data-umami-event="link-api">API</a>
+				section for more details on how to use this service.
+			</p>
+		</blockquote>
+		<blockquote class="blockquote margin">
+			<h1>Used Data & APIs</h1>
+			<p class="col-md-4 offset-md-4">The data is currently obtained from the following providers:</p>
+			<ul style="display: inline-block; text-align: initial">
+				<% for (const data of instances) { %>
+				<li>
+					<a href="https://<%= data %>" style="text-decoration: none" data-umami-event="instance-<%= data %>"> <%= data %></a>
+				</li>
+				<% } %>
+			</ul>
+		</blockquote>
+	</div>
 </body>

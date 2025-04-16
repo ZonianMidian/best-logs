@@ -5,5 +5,6 @@
 	"useTabs": true,
 	"printWidth": 150,
 	"endOfLine": "auto",
-	"bracketSameLine": true
+	"bracketSameLine": true,
+	"plugins": ["prettier-plugin-ejs"]
 }
