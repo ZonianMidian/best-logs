@@ -36,6 +36,7 @@ export class Utils {
 	uniqueChannels = new Set();
 	statusCodes = new Map();
 	listData = new Map();
+	infoData = new Map();
 
 	reloadInterval = 1 * 60 * 60 * 1000;
 	lastUpdated = Date.now();
@@ -172,16 +173,24 @@ export class Utils {
 		}
 
 		const { login, id, banned } = await this.getInfo(channel).catch(() => ({}));
-		request.channel = { login, id, banned };
-		if (banned) {
-			channel = `id:${request.channel.id}`;
+		if (id) {
+			request.channel = { login, id, banned };
+			if (banned) {
+				channel = `id:${request.channel.id}`;
+			}
+		} else {
+			error = `The channel does not exist: ${channel}`;
 		}
 
 		if (user) {
 			const { login, id, banned } = await this.getInfo(user).catch(() => ({}));
-			request.user = { login, id, banned };
-			if (banned) {
-				user = `id:${request.user.id}`;
+			if (id) {
+				request.user = { login, id, banned };
+				if (banned) {
+					user = `id:${request.user.id}`;
+				}
+			} else {
+				error = `The user does not exist: ${user}`;
 			}
 		}
 
@@ -623,17 +632,33 @@ export class Utils {
 	}
 
 	async getInfo(user) {
-		const isId = this.userIdRegex.test(user);
-		const { body, statusCode } = await this.request(`https://api.ivr.fi/v2/twitch/user?${isId ? 'id' : 'login'}=${user.replace('id:', '')}`, {
-			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-			throwHttpErrors: false,
-			responseType: 'json',
-			timeout: 5000,
-		});
+		const dataCacheKey = `logs:info:${user.replace('id:', 'id-')}`;
+		const cachedData = this.infoData.get(dataCacheKey);
+		let apiError = false;
+		let data = {};
 
-		if (statusCode < 200 || statusCode > 299) return null;
+		if (cachedData) {
+			data = cachedData;
+		} else {
+			const { body, statusCode } = await this.request(
+				`https://api.ivr.fi/v2/twitch/user?${this.userIdRegex.test(user) ? 'id' : 'login'}=${user.replace('id:', '')}`,
+				{
+					headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+					throwHttpErrors: false,
+					responseType: 'json',
+					timeout: 5000,
+				},
+			);
+			if (statusCode < 200 || statusCode > 299) {
+				apiError = true;
+			} else {
+				data = body?.[0] || {};
+			}
+		}
 
-		const { displayName, login, logo: avatar, id, banned } = body?.[0] || {};
+		if (!apiError) this.infoData.set(dataCacheKey, data);
+
+		const { displayName, login, logo: avatar, id, banned } = data;
 		const name = displayName.toLowerCase() === login ? displayName : login;
 
 		return { name, login, avatar, id, banned };
