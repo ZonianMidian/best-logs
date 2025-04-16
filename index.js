@@ -305,6 +305,7 @@ const logsApi = async (req, res) => {
 
 			const { body, statusCode, headers } = await got(`${instanceLink}${req.url}`, {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+				throwHttpErrors: false,
 				https: {
 					rejectUnauthorized: false,
 				},
