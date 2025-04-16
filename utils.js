@@ -153,6 +153,11 @@ export class Utils {
 
 		let status = 200;
 		let downSites = 0;
+		let request = {
+			channel: null,
+			user: null,
+			forced: force,
+		};
 
 		let optOuts = [];
 		let userLinks = [];
@@ -166,8 +171,22 @@ export class Utils {
 			await this.loopLoadInstanceChannels(true);
 		}
 
+		const { login, id, banned } = await this.getInfo(channel).catch(() => ({}));
+		request.channel = { login, id, banned };
+		if (banned) {
+			channel = `id:${request.channel.id}`;
+		}
+
+		if (user) {
+			const { login, id, banned } = await this.getInfo(user).catch(() => ({}));
+			request.user = { login, id, banned };
+			if (banned) {
+				user = `id:${request.user.id}`;
+			}
+		}
+
 		if (!error) {
-			const results = await Promise.allSettled(instances.map((i) => this.getLogs(i, user, channel, force, pretty)));
+			const results = await Promise.allSettled(instances.map((i) => this.getLogs(i, user, channel, force, pretty, banned)));
 			const resolvedInstances = results.filter(({ status }) => status === 'fulfilled').map(({ value }) => value);
 
 			for (const instance of resolvedInstances) {
@@ -243,11 +262,7 @@ export class Utils {
 				count: instances.length,
 				down: downSites,
 			},
-			request: {
-				user,
-				channel,
-				forced: force,
-			},
+			request,
 			available: {
 				user: userInstances.length > 0,
 				channel: channelInstances.length > 0,
@@ -279,22 +294,15 @@ export class Utils {
 		};
 	}
 
-	async getLogs(url, user, channel, force, pretty) {
+	async getLogs(url, user, channel, force, pretty, banned) {
 		pretty = pretty?.toLowerCase() === 'true';
 
 		const channels = this.instanceChannels.get(url)?.flatMap((i) => [i.name, i.userID]) ?? [];
-		let channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
+		const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
 		const instanceURL = this.config.justlogsInstances[url]?.alternate ?? url;
-		let channelClean = channel.replace('id:', '');
+		const channelClean = channel.replace('id:', '');
 
-		const { banned, id } = await this.getInfo(channelClean, channel.match(this.userIdRegex)).catch(() => ({}));
-		if (banned) {
-			channelPath = 'channelid';
-			channelClean = id;
-		} else {
-			if (!channels.includes(channelClean)) return { Status: 3 };
-		}
-
+		if (!banned && !channels.includes(channelClean)) return { Status: 3 };
 		if (!channels.length) return { Status: 0 };
 
 		const listCacheKey = `logs:list:${url}:${channel.replace('id:', 'id-')}`;
@@ -335,17 +343,9 @@ export class Utils {
 		}
 
 		const instanceCacheKey = `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`;
-		let userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
+		const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
 		let statusCode = this.statusCodes.get(instanceCacheKey);
-		let userClean = user.replace('id:', '');
-
-		if (userPath === 'user') {
-			const { banned, id } = await this.getInfo(userClean).catch(() => ({}));
-			if (banned) {
-				userPath = 'userid';
-				userClean = id;
-			}
-		}
+		const userClean = user.replace('id:', '');
 
 		if (!statusCode || force) {
 			statusCode = await this.request(`https://${instanceURL}/list?${channelPath}=${channelClean}&${userPath}=${userClean}`, {
@@ -622,8 +622,9 @@ export class Utils {
 		return nameHistory;
 	}
 
-	async getInfo(user, isId) {
-		const { body, statusCode } = await this.request(`https://api.ivr.fi/v2/twitch/user?${isId ? 'id' : 'login'}=${user}`, {
+	async getInfo(user) {
+		const isId = this.userIdRegex.test(user);
+		const { body, statusCode } = await this.request(`https://api.ivr.fi/v2/twitch/user?${isId ? 'id' : 'login'}=${user.replace('id:', '')}`, {
 			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 			throwHttpErrors: false,
 			responseType: 'json',
@@ -632,9 +633,9 @@ export class Utils {
 
 		if (statusCode < 200 || statusCode > 299) return null;
 
-		const { displayName, logo: avatar, id, banned } = body?.[0] || {};
-		const name = displayName.toLowerCase() === user ? displayName : user;
+		const { displayName, login, logo: avatar, id, banned } = body?.[0] || {};
+		const name = displayName.toLowerCase() === login ? displayName : login;
 
-		return { name, avatar, id, banned };
+		return { name, login, avatar, id, banned };
 	}
 }
