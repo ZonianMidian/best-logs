@@ -262,6 +262,10 @@ export class Utils {
 
 		const channelList = channelInstancesWithLength[0]?.list ?? [];
 
+		if (request?.channel?.banned && channelInstances.length) {
+			this.addChannel({ name: request.channel.login, userID: request.channel.id });
+		}
+
 		console.log(`- [Logs] Channel: ${channel}${user ? ` - User: ${user}` : ''} | ${elapsed.ms}ms`);
 
 		return {
