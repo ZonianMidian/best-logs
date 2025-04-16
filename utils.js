@@ -283,12 +283,19 @@ export class Utils {
 		pretty = pretty?.toLowerCase() === 'true';
 
 		const channels = this.instanceChannels.get(url)?.flatMap((i) => [i.name, i.userID]) ?? [];
-		const channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
+		let channelPath = channel.match(this.userIdRegex) ? 'channelid' : 'channel';
 		const instanceURL = this.config.justlogsInstances[url]?.alternate ?? url;
-		const channelClean = channel.replace('id:', '');
+		let channelClean = channel.replace('id:', '');
+
+		const { banned, id } = await this.getInfo(channelClean, channel.match(this.userIdRegex)).catch(() => ({}));
+		if (banned) {
+			channelPath = 'channelid';
+			channelClean = id;
+		} else {
+			if (!channels.includes(channelClean)) return { Status: 3 };
+		}
 
 		if (!channels.length) return { Status: 0 };
-		if (!channels.includes(channelClean)) return { Status: 3 };
 
 		const listCacheKey = `logs:list:${url}:${channel.replace('id:', 'id-')}`;
 		let list = this.listData.get(listCacheKey);
@@ -328,9 +335,17 @@ export class Utils {
 		}
 
 		const instanceCacheKey = `logs:instance:${url}:${channel.replace('id:', 'id-')}:${user.replace('id:', 'id-')}`;
-		const userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
-		const userClean = user.replace('id:', '');
+		let userPath = user.match(this.userIdRegex) ? 'userid' : 'user';
 		let statusCode = this.statusCodes.get(instanceCacheKey);
+		let userClean = user.replace('id:', '');
+
+		if (userPath === 'user') {
+			const { banned, id } = await this.getInfo(userClean).catch(() => ({}));
+			if (banned) {
+				userPath = 'userid';
+				userClean = id;
+			}
+		}
 
 		if (!statusCode || force) {
 			statusCode = await this.request(`https://${instanceURL}/list?${channelPath}=${channelClean}&${userPath}=${userClean}`, {
@@ -607,8 +622,8 @@ export class Utils {
 		return nameHistory;
 	}
 
-	async getInfo(user) {
-		const { body, statusCode } = await this.request(`https://api.ivr.fi/v2/twitch/user?login=${user}`, {
+	async getInfo(user, isId) {
+		const { body, statusCode } = await this.request(`https://api.ivr.fi/v2/twitch/user?${isId ? 'id' : 'login'}=${user}`, {
 			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 			throwHttpErrors: false,
 			responseType: 'json',
@@ -617,9 +632,9 @@ export class Utils {
 
 		if (statusCode < 200 || statusCode > 299) return null;
 
-		const { displayName, logo: avatar, id } = body?.[0] || {};
+		const { displayName, logo: avatar, id, banned } = body?.[0] || {};
 		const name = displayName.toLowerCase() === user ? displayName : user;
 
-		return { name, avatar, id };
+		return { name, avatar, id, banned };
 	}
 }
