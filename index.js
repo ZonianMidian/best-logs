@@ -269,7 +269,7 @@ const extractValue = (input, regex) => {
 	input = utils.formatUsername(input);
 	const match = input.match(regex);
 	if (match) {
-		const result = match[1];
+		const result = match[2];
 		if (input.match(/id[\/=]\d{1,}/)) {
 			return `id:${result}`;
 		}
@@ -302,8 +302,17 @@ const logsApi = async (req, res) => {
 			return res.send(data.error);
 		} else {
 			const instanceLink = data?.userLogs?.instances[0] ?? data?.channelLogs?.instances[0];
+			let requestUrl = req.url.replace(utils.channelLinkRegex, (_, sep) => {
+				return `channelid${sep}${data.request.channel.id}`;
+			});
 
-			const { body, statusCode, headers } = await got(`${instanceLink}${req.url}`, {
+			if (user) {
+				requestUrl = requestUrl.replace(utils.userLinkRegex, (_, sep) => {
+					return `userid${sep}${data.request.user.id}`;
+				});
+			}
+
+			const { body, statusCode, headers } = await got(`${instanceLink}${requestUrl}`, {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 				throwHttpErrors: false,
 				https: {

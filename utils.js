@@ -27,8 +27,8 @@ const loadedConfig = await loadConfig();
 console.log(`- [Config] Loaded config`);
 
 export class Utils {
-	channelLinkRegex = /channel(?:id)?[\/=]([a-z0-9]\w{0,24})/i;
-	userLinkRegex = /user(?:id)?[\/=]([a-z0-9]\w{0,24})/i;
+	channelLinkRegex = /channel(?:id)?([\/=])([a-z0-9]\w{0,24})/i;
+	userLinkRegex = /user(?:id)?([\/=])([a-z0-9]\w{0,24})/i;
 	userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
 	userIdRegex = /^id:(\d{1,})$/i;
 
