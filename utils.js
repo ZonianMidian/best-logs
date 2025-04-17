@@ -92,9 +92,7 @@ export class Utils {
 					const channelURL = this.config.justlogsInstances[url]?.alternate ?? url;
 					const logsData = await this.request(`https://${channelURL}/channels`, {
 						headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-						https: {
-							rejectUnauthorized: false,
-						},
+						https: { rejectUnauthorized: false },
 						responseType: 'json',
 						timeout: 10000,
 						http2: true,
@@ -363,14 +361,13 @@ export class Utils {
 		if (!statusCode || force) {
 			statusCode = await this.request(`https://${instanceURL}/list?${channelPath}=${channelClean}&${userPath}=${userClean}`, {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-				https: {
-					rejectUnauthorized: false,
-				},
+				https: { rejectUnauthorized: false },
+				throwHttpErrors: false,
 				timeout: 5000,
 				http2: true,
 			})
 				.then((res) => res.statusCode)
-				.catch((err) => err.response.statusCode);
+				.catch(() => 500);
 
 			this.statusCodes.set(instanceCacheKey, statusCode);
 		}
@@ -402,6 +399,7 @@ export class Utils {
 	async fetchMessages(instance, channel, searchParams) {
 		return this.request(`https://${instance}/api/v2/recent-messages/${channel}`, {
 			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+			https: { rejectUnauthorized: false },
 			throwHttpErrors: false,
 			responseType: 'json',
 			timeout: 5000,
@@ -412,6 +410,7 @@ export class Utils {
 	async fetchRustlogs(instance, channel, date, limit) {
 		const { body } = await this.request(`${instance}/channel/${channel}/${date.year}/${date.month}/${date.day}?limit=${limit}&raw&reverse`, {
 			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+			https: { rejectUnauthorized: false },
 			timeout: 5000,
 			http2: true,
 		});
@@ -648,6 +647,7 @@ export class Utils {
 				`https://api.ivr.fi/v2/twitch/user?${this.userIdRegex.test(user) ? 'id' : 'login'}=${user.replace('id:', '')}`,
 				{
 					headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
+					https: { rejectUnauthorized: false },
 					throwHttpErrors: false,
 					responseType: 'json',
 					timeout: 5000,
