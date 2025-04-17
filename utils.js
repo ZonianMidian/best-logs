@@ -30,6 +30,7 @@ export class Utils {
 	channelLinkRegex = /channel(?:id)?([\/=])([a-z0-9]\w{0,24})/i;
 	userLinkRegex = /user(?:id)?([\/=])([a-z0-9]\w{0,24})/i;
 	userChanRegex = /^[a-z0-9]\w{0,24}$|^id:(\d{1,})$/i;
+	tmiSentRegex = /tmi-sent-ts=(\d+)(;|\s:)/;
 	userIdRegex = /^id:(\d{1,})$/i;
 
 	instanceChannels = new Map();
@@ -407,7 +408,7 @@ export class Utils {
 		});
 	}
 
-	async fetchRustlogs(instance, channel, date, limit) {
+	async fetchRustlogs(instance, channel, date, limit, firstTs) {
 		const { body } = await this.request(`${instance}/channel/${channel}/${date.year}/${date.month}/${date.day}?limit=${limit}&raw&reverse`, {
 			headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 			https: { rejectUnauthorized: false },
@@ -424,14 +425,24 @@ export class Utils {
 		// differentiate between historical and recent messages, resulting in issues.
 		//
 
-		for (let i = 0; i < logsMessages.length; i += 1) {
+		for (let i = logsMessages.length - 1; i >= 0; i -= 1) {
 			let message = logsMessages[i];
 
-			// Add the tag "tmi-sent-ts=XXXX;"
-			const match = message.match(/tmi-sent-ts=(\d+);/);
+			// Get timestamp value
+			const match = message.match(this.tmiSentRegex);
 			if (match) {
-				const timestamp = match[1];
-				message = message.replace(`tmi-sent-ts=${timestamp};`, `tmi-sent-ts=${timestamp};rm-received-ts=${timestamp};`);
+				const timestamp = Number(match[1]);
+				if (firstTs && timestamp >= Number(firstTs)) {
+					// Remove message if already in RecentMessages
+					logsMessages.splice(i, 1);
+					continue;
+				}
+
+				// Add the tag "tmi-sent-ts=XXXX;"
+				message = message.replace(
+					`tmi-sent-ts=${timestamp};`,
+					`tmi-sent-ts=${timestamp};rm-received-ts=${timestamp};`
+				);
 			}
 
 			// If you request the tags capability all messages start with @
@@ -447,6 +458,7 @@ export class Utils {
 		const instances = Object.keys(this.config.recentmessagesInstances);
 		let { limit, rm_only } = searchParams;
 		limit = Number(limit) || 1000;
+		let recentMessages = [];
 		let messages = [];
 
 		let statusMessage;
@@ -462,8 +474,9 @@ export class Utils {
 			status = statusCode || 500;
 
 			if (statusCode === 200 && body.messages.length) {
+				recentMessages = body.messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));;
+				messages = body.messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));;
 				errorCode = body.error_code;
-				messages = body.messages;
 				error = body.error;
 
 				console.log(`[${entry}] Channel: ${channel} | ${status} - ${messages.length} messages`);
@@ -476,7 +489,7 @@ export class Utils {
 			}
 		}
 
-		messages = messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));
+		const firstTs = messages[0]?.match(this.tmiSentRegex)?.[1] || null;
 
 		if (!rm_only || rm_only !== 'true') {
 			const logs = await this.getInstance(channel);
@@ -495,14 +508,14 @@ export class Utils {
 						if (logs.available.channel) {
 							const list = logs.loggedData.list;
 
-							let logsMessages = [];
-							let totalMessages = 0;
+							let totalMessages = recentMessages.length;
+							let logsMessages = recentMessages;
 							let daysFetched = 0;
 							const maxDays = 7;
 
 							while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
 								try {
-									const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages);
+									const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages, firstTs);
 									logsMessages = [...dayLogs, ...logsMessages];
 									totalMessages += dayLogs.length;
 								} catch (dayError) {
