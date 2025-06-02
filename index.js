@@ -75,7 +75,7 @@ async function sendStats(req, name, data = {}) {
 	const payload = {
 		hostname: req.hostname,
 		language: req.headers['accept-language'],
-		referrer: req.headers['referer'] || '',
+		referrer: req.headers['referer'] || config.instance?.url || '',
 		url: req.originalUrl,
 		website: config.umamiStats.id,
 		name: name,
