@@ -412,7 +412,9 @@ app.use(function (err, req, res, next) {
 	res.render('error', { error: err.message, code: status });
 });
 
-app.listen(config.port, () => {
-	utils.loopLoadInstanceChannels();
+app.listen(config.port, async () => {
 	console.log(`- [Website] Listening on ${config.port}`);
+
+	await utils.loopLoadInstanceChannels();
+	utils.loopErrorInstanceChannels();
 });

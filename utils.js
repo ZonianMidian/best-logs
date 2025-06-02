@@ -39,9 +39,11 @@ export class Utils {
 	listData = new Map();
 	infoData = new Map();
 
-	reloadInterval = 1 * 60 * 60 * 1000;
+	reloadInterval = 1 * 60 * 60 * 1000; // 1 hour
+	errorInterval = 1 * 60 * 1000; // 1 minute
 	lastUpdated = Date.now();
 	config = loadedConfig;
+	errorLoop = null;
 	loadLoop = null;
 
 	formatUsername(username) {
@@ -86,9 +88,24 @@ export class Utils {
 		}
 	}
 
-	async loadInstanceChannels(noLogs) {
+	async loadInstanceChannels(noLogs, onlyError) {
+		let instances = Object.keys(this.config.justlogsInstances);
+
+		if (onlyError) {
+			instances = instances.filter((url) => Array.isArray(this.instanceChannels.get(url)) && this.instanceChannels.get(url).length === 0);
+		}
+
+		if (!instances.length && !onlyError) {
+			if (!noLogs) {
+				console.log(`- [Logs] No instances found`);
+			}
+			return;
+		}
+
+		console.log(instances);
+
 		await Promise.allSettled(
-			Object.keys(this.config.justlogsInstances).map(async (url) => {
+			instances.map(async (url) => {
 				try {
 					const channelURL = this.config.justlogsInstances[url]?.alternate ?? url;
 					const logsData = await this.request(`https://${channelURL}/channels`, {
@@ -117,7 +134,9 @@ export class Utils {
 					if (err.name === 'ParseError') {
 						error = 'Invalid JSON';
 					}
-					console.error(`[${url}] Failed loading channels: ${error}`);
+					if (!noLogs) {
+						console.error(`[${url}] Failed loading channels: ${error}`);
+					}
 					this.instanceChannels.set(url, []);
 				}
 			}),
@@ -127,7 +146,9 @@ export class Utils {
 		this.statusCodes.clear();
 		this.listData.clear();
 
-		console.log(`- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${this.instanceChannels.size} instances`);
+		if (!noLogs) {
+			console.log(`- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${this.instanceChannels.size} instances`);
+		}
 	}
 
 	addChannel(channel) {
@@ -142,7 +163,15 @@ export class Utils {
 
 		await this.loadInstanceChannels(noLogs);
 
-		this.loadLoop = setInterval(() => this.loadInstanceChannels(), this.reloadInterval);
+		this.loadLoop = setInterval(() => this.loadInstanceChannels(noLogs), this.reloadInterval);
+	}
+
+	async loopErrorInstanceChannels() {
+		clearInterval(this.errorLoop);
+
+		await this.loadInstanceChannels(true, true);
+
+		this.errorLoop = setInterval(() => this.loadInstanceChannels(true, true), this.errorInterval);
 	}
 
 	async getInstance(channel, user, force, pretty, error) {
