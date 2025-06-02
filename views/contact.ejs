@@ -3,22 +3,39 @@
 	<title>Logs | Contact</title>
 	<meta name="description" content="Contact with @ZonianMidian" />
 	<meta property="og:title" content="Logs | Contact" />
-	<meta property="og:image" content="<%= avatar %>" />
+	<meta property="og:image" content="<%= creator.avatar %>" />
 	<meta property="og:description" content="Contact with @ZonianMidian" />
 </head>
 <body>
-	<div class="text-center margin">
-		<h1>Contact</h1>
+	<div class="text-center margin <%= maintainer ? 'col2' : '' %> content">
 		<blockquote class="blockquote margin">
-			<img src="<%= avatar %>" draggable="false" title="<%= name %>" alt="<%= name %>" style="height: 10em" />
-			<h1 class="title hoster"><%= name %></h1>
+			<img src="<%= creator.avatar %>" draggable="false" title="<%= creator.name %>" alt="<%= creator.name %>" style="height: 10em" />
+			<h1 class="title contactTitle"><%= creator.name %></h1>
 			<div class="socials">
 				<a href="https://x.com/ZonianMidian" class="fa-brands fa-x-twitter" data-umami-event="socials-twitter"></a>
-				<a href="https://www.twitch.tv/ZonianMidian" class="fa-brands fa-twitch" data-umami-event="socials-twitch"></a>
-				<a href="https://www.github.com/ZonianMidian" class="fa-brands fa-github" data-umami-event="socials-github"></a>
+				<a href="https://twitch.tv/ZonianMidian" class="fa-brands fa-twitch" data-umami-event="socials-twitch"></a>
+				<a href="https://github.com/ZonianMidian" class="fa-brands fa-github" data-umami-event="socials-github"></a>
 				<a href="https://discord.gg/rMjftZx8Ex" class="fa-brands fa-discord" data-umami-event="socials-discord"></a>
 			</div>
 			<p>Contact me for questions or suggestions :P</p>
 		</blockquote>
+		<% if (maintainer?.name) { %>
+		<blockquote class="blockquote margin">
+			<img src="<%= maintainer.avatar %>" draggable="false" title="<%= maintainer.name %>" alt="<%= maintainer.name %>" style="height: 10em" />
+			<h1 class="title contactTitle"><%= maintainer.name %></h1>
+			<div class="socials">
+				<a href="https://twitch.tv/<%= maintainer.name %>" class="fa-brands fa-twitch" data-umami-event="socials-twitch"></a>
+			</div>
+			<% if (maintainer.message) { %>
+			<p><%= maintainer.message %></p>
+			<% } %>
+		</blockquote>
+		<% } %>
+	</div>
+	<div id="version">
+		<p>
+			Version
+			<%= version %>
+		</p>
 	</div>
 </body>

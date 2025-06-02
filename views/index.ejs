@@ -7,7 +7,7 @@
 	<meta property="og:description" content="Logs finder for Twitch" />
 </head>
 <body>
-	<div class="text-center margin">
+	<div class="text-center margin content">
 		<img src="/static/DankG.gif" alt="DankG" />
 		<blockquote class="blockquote margin">
 			<h1>About</h1>
@@ -35,5 +35,27 @@
 				<% } %>
 			</ul>
 		</blockquote>
+		<blockquote class="blockquote margin">
+			<h1>Instance</h1>
+			<p class="col-md-4 offset-md-4">This instance is located at:</p>
+			<% if (instance.flag) { %>
+			<img src="https://flagcdn.com/<%= instance.flag.toLowerCase() %>.svg" width="300" alt="<%= instance.country %>" class="flag" />
+			<% } %>
+			<h3>
+				<% if (instance.city) { %>
+				<%= instance.city %>,
+				<% } %>
+				<%= instance.country %>
+			</h3>
+			<% if (instance.url) { %>
+			<a data-umami-event="instance-url-<%= instance.url %>" href="https://<%= instance.url %>"><%= instance.url %></a>
+			<% } %>
+		</blockquote>
+	</div>
+	<div id="version">
+		<p>
+			Version
+			<%= version %>
+		</p>
 	</div>
 </body>

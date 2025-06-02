@@ -439,10 +439,7 @@ export class Utils {
 				}
 
 				// Add the tag "tmi-sent-ts=XXXX;"
-				message = message.replace(
-					`tmi-sent-ts=${timestamp};`,
-					`tmi-sent-ts=${timestamp};rm-received-ts=${timestamp};`
-				);
+				message = message.replace(`tmi-sent-ts=${timestamp};`, `tmi-sent-ts=${timestamp};rm-received-ts=${timestamp};`);
 			}
 
 			// If you request the tags capability all messages start with @
@@ -474,8 +471,8 @@ export class Utils {
 			status = statusCode || 500;
 
 			if (statusCode === 200 && body.messages.length) {
-				recentMessages = body.messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));;
-				messages = body.messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));;
+				recentMessages = body.messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));
+				messages = body.messages.filter((str) => !str.includes(':tmi.twitch.tv ROOMSTATE #'));
 				errorCode = body.error_code;
 				error = body.error;
 
@@ -515,7 +512,13 @@ export class Utils {
 
 							while (totalMessages < limit && daysFetched < maxDays && daysFetched < list.length) {
 								try {
-									const dayLogs = await this.fetchRustlogs(instanceLink, channel, list[daysFetched], limit - totalMessages, firstTs);
+									const dayLogs = await this.fetchRustlogs(
+										instanceLink,
+										channel,
+										list[daysFetched],
+										limit - totalMessages,
+										firstTs,
+									);
 									logsMessages = [...dayLogs, ...logsMessages];
 									totalMessages += dayLogs.length;
 								} catch (dayError) {

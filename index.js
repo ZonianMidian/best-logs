@@ -4,6 +4,7 @@ import { dirname } from 'path';
 import express from 'express';
 import cors from 'cors';
 import got from 'got';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,6 +18,8 @@ app.use((req, res, next) => {
 	next();
 });
 
+const version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+
 app.use('/favicon.ico', express.static(`${__dirname}/static/favicon.ico`));
 app.use('/static', express.static(`${__dirname}/static`));
 app.set('views', `${__dirname}/views`);
@@ -26,23 +29,29 @@ app.use(cors());
 app.get('/', (req, res) => {
 	const instances = Object.keys(config.justlogsInstances);
 
-	res.render('index', { instances });
+	res.render('index', { instances, instance: config.instance || {}, version });
 });
 
 app.get('/api', async (req, res) => {
-	res.render('api');
+	res.render('api', { version });
 });
 
 app.get('/faq', (req, res) => {
 	const instances = Object.keys(config.justlogsInstances);
 
-	res.render('faq', { instances });
+	res.render('faq', { version });
 });
 
 app.get('/contact', async (req, res) => {
-	const userInfo = await utils.getInfo('zonianmidian');
+	const creator = await utils.getInfo('ZonianMidian');
+	let maintainer = null;
 
-	res.render('contact', userInfo);
+	if (config.instance && Object.keys(config.instance).length > 0) {
+		const maintainerInfo = config.instance?.maintainer ? await utils.getInfo(config.instance.maintainer) : {};
+		maintainer = Object.assign({}, config.instance, maintainerInfo);
+	}
+
+	res.render('contact', { creator, maintainer, version });
 });
 
 app.get('/status', (req, res) => {
@@ -57,7 +66,9 @@ app.get('/status', (req, res) => {
 		}
 	}
 
-	res.render('status', { instances, timestamp: utils.lastUpdated, nextUpdate: utils.reloadInterval });
+	const uptime = Date.now() - process.uptime() * 1000;
+
+	res.render('status', { instances, lastUpdate: utils.lastUpdated, nextUpdate: utils.reloadInterval, uptime, version });
 });
 
 async function sendStats(req, name, data = {}) {

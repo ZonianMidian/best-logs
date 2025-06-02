@@ -7,7 +7,7 @@
 	<meta property="og:description" content="Status of instances" />
 </head>
 <body>
-	<div class="text-center margin">
+	<div class="text-center margin content">
 		<h1>Status</h1>
 		<div class="container">
 			<% for (let key in instances) { %>
@@ -36,8 +36,15 @@
 			</div>
 			<% } %>
 		</div>
-		<p class="time" id="timestamp">Last update: X %></p>
-		<p class="time" id="next-update">Next update: X %></p>
+		<p class="time" id="last-update">Last Update: X</p>
+		<p class="time" id="next-update">Next Update: X</p>
+		<p class="time" id="current-uptime">Uptime: X</p>
+	</div>
+	<div id="version">
+		<p>
+			Version
+			<%= version %>
+		</p>
 	</div>
 </body>
 
@@ -67,19 +74,19 @@
 	}
 
 	const intervalId = setInterval(() => {
-		const timestampElement = document.getElementById('timestamp');
-		const timestamp = `<%= timestamp %>`;
+		const lastElement = document.getElementById('last-update');
+		const nextElement = document.getElementById('next-update');
+		const uptimeElement = document.getElementById('current-uptime');
 
-		const nextUpdateElement = document.getElementById('next-update');
-		const nextUpdate = `<%= nextUpdate %>`;
+		const lastTime = getTime(`<%= lastUpdate %>`);
+		const nextTime = getTime(`<%= lastUpdate + nextUpdate %>`, true);
+		const currentUptime = getTime(`<%= uptime %>`);
 
-		const timeAgo = getTime(`<%= timestamp %>`);
-		const timeUntilNext = getTime(`<%= timestamp + nextUpdate %>`, true);
+		lastElement.innerText = `Last update: ${lastTime} ago`;
+		nextElement.innerText = `Next update: In ${nextTime}`;
+		uptimeElement.innerText = `Uptime: ${currentUptime}`;
 
-		timestampElement.innerText = `Last update: ${timeAgo} ago`;
-		nextUpdateElement.innerText = `Next update: In ${timeUntilNext}`;
-
-		if (timeUntilNext === '0 seconds') {
+		if (nextTime === '0 seconds') {
 			clearInterval(intervalId);
 			setTimeout(() => {
 				location.reload();

@@ -9,6 +9,13 @@
 	font-family: Helvetica;
 }
 
+html,
+body {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
 blockquote.h1 {
 	font-size: 1em;
 	margin: 0.83em 0;
@@ -93,7 +100,7 @@ img.emote_image {
 	color: var(--bs-body-bg) !important;
 }
 
-.hoster {
+.contactTitle {
 	font-weight: 700 !important;
 }
 
@@ -140,6 +147,40 @@ a {
 }
 
 .time {
+	margin: 0;
+}
+
+.col2 {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	gap: 20px;
+}
+
+.col2 blockquote {
+	padding: 1rem;
+	margin: 0;
+	width: 400px;
+	height: 400px;
+}
+
+.flag {
+	margin-bottom: 1rem;
+}
+
+.content {
+	flex: 1;
+}
+
+#version {
+	text-align: center;
+	opacity: 0.7;
+	padding: 1em 0 0.5em 0;
+}
+
+#version p {
 	margin: 0;
 }
 
