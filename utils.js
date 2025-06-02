@@ -102,6 +102,7 @@ export class Utils {
 			return;
 		}
 
+		let instancesWorking = 0;
 		await Promise.allSettled(
 			instances.map(async (url) => {
 				try {
@@ -123,6 +124,7 @@ export class Utils {
 					}
 
 					this.instanceChannels.set(url, currentInstanceChannels);
+					instancesWorking++;
 
 					if (!noLogs) {
 						console.log(`[${url}] Loaded ${currentInstanceChannels.length} channels`);
@@ -145,7 +147,9 @@ export class Utils {
 		this.listData.clear();
 
 		if (!noLogs) {
-			console.log(`- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${this.instanceChannels.size} instances`);
+			console.log(
+				`- [Logs] Loaded ${this.uniqueChannels.size} unique channels from ${instancesWorking}/${this.instanceChannels.size} instances`,
+			);
 		}
 	}
 

@@ -39,13 +39,23 @@
 			<h1>Instance</h1>
 			<p class="col-md-4 offset-md-4">This instance is located at:</p>
 			<% if (instance.flag) { %>
-			<img src="https://flagcdn.com/<%= instance.flag.toLowerCase() %>.svg" width="300" alt="<%= instance.country %>" class="flag" />
+			<img
+				src="https://flagcdn.com/<%= instance.flag.toLowerCase() %>.svg"
+				width="300"
+				draggable="false"
+				title="<%= instance.country || instance.city || ''%>"
+				alt="<%= instance.country || instance.city || ''%>"
+				class="flag" />
 			<% } %>
 			<h3>
-				<% if (instance.city) { %>
+				<% if (instance.city && instance.country) { %>
 				<%= instance.city %>,
-				<% } %>
 				<%= instance.country %>
+				<% } else if (instance.city) { %>
+				<%= instance.city %>
+				<% } else if (instance.country) { %>
+				<%= instance.country %>
+				<% } %>
 			</h3>
 			<% if (instance.url) { %>
 			<a data-umami-event="instance-url-<%= instance.url %>" href="https://<%= instance.url %>"><%= instance.url %></a>
