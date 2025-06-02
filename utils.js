@@ -524,7 +524,14 @@ export class Utils {
 			let instanceLink = 'Logs';
 
 			try {
-				const instances = logs.channelLogs.instances;
+				let instances = logs.channelLogs.instances;
+
+				const mainInstance = `https://${Object.keys(this.config.justlogsInstances)[0]}`;
+				const index = instances.indexOf(mainInstance);
+				if (index > 0) {
+					instances = [instances[index], ...instances.slice(0, index), ...instances.slice(index + 1)];
+				}
+
 				const maxRetries = 3;
 				let instanceIndex = 0;
 				let success = false;
