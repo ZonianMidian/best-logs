@@ -102,8 +102,6 @@ export class Utils {
 			return;
 		}
 
-		console.log(instances);
-
 		await Promise.allSettled(
 			instances.map(async (url) => {
 				try {

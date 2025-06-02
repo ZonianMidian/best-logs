@@ -97,6 +97,28 @@ async function sendStats(req, name, data = {}) {
 	}
 }
 
+app.get('/health', async (req, res) => {
+	await sendStats(req, 'health');
+
+	const rawInstances = Object.fromEntries(utils.instanceChannels);
+	const channels = Array.from(utils.uniqueChannels);
+
+	const instances = {};
+	for (const [key, arr] of Object.entries(rawInstances)) {
+		instances[key] = Array.isArray(arr) ? arr.length : 0;
+	}
+
+	if (channels.length === 0) {
+		res.status(500);
+	}
+
+	res.json({
+		instancesStats: checkInstances(rawInstances),
+		instances: instances,
+		channels: channels.length,
+	});
+});
+
 app.get('/rdr/:channel', async (req, res) => {
 	const channel = utils.formatUsername(req.params.channel);
 
