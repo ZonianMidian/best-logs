@@ -7,6 +7,9 @@
 	<meta property="og:description" content="Contact with @ZonianMidian" />
 </head>
 <body>
+	<div class="text-center margin">
+		<h1>Contact</h1>
+	</div>
 	<div class="text-center margin <%= maintainer ? 'col2' : '' %> content">
 		<blockquote class="blockquote margin">
 			<img src="<%= creator.avatar %>" draggable="false" title="<%= creator.name %>" alt="<%= creator.name %>" style="height: 10em" />
@@ -24,7 +27,7 @@
 			<img src="<%= maintainer.avatar %>" draggable="false" title="<%= maintainer.name %>" alt="<%= maintainer.name %>" style="height: 10em" />
 			<h1 class="title contactTitle"><%= maintainer.name %></h1>
 			<div class="socials">
-				<a href="https://twitch.tv/<%= maintainer.name %>" class="fa-brands fa-twitch" data-umami-event="socials-twitch"></a>
+				<a href="https://twitch.tv/<%= maintainer.name %>" class="fa-brands fa-twitch" data-umami-event="maintainer-twitch"></a>
 			</div>
 			<% if (maintainer.message) { %>
 			<p><%= maintainer.message %></p>
