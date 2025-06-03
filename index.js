@@ -99,7 +99,7 @@ async function sendStats(req, name, data = {}) {
 
 app.get('/health', async (req, res) => {
 	const start = performance.now();
-	await sendStats(req, 'health');
+	sendStats(req, 'health');
 
 	const rawInstances = Object.fromEntries(utils.instanceChannels);
 	const channels = Array.from(utils.uniqueChannels);
@@ -143,7 +143,7 @@ app.get('/rdr/:channel', async (req, res) => {
 			res.status(instance.status);
 			return res.render('error', { error: instance.error, code: instance.status });
 		} else {
-			await sendStats(req, 'rdr', {
+			sendStats(req, 'rdr', {
 				channel: channel ?? '',
 			});
 
@@ -178,7 +178,7 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 			res.status(instance.status);
 			return res.render('error', { error: instance.error, code: instance.status });
 		} else {
-			await sendStats(req, 'rdr', {
+			sendStats(req, 'rdr', {
 				channel: channel ?? '',
 				user: user ?? '',
 			});
@@ -197,7 +197,7 @@ app.get('/api/:channel', async (req, res) => {
 	const channel = utils.formatUsername(req.params.channel);
 	let error = null;
 
-	await sendStats(req, 'api', {
+	sendStats(req, 'api', {
 		channel: channel ?? '',
 	});
 
@@ -235,7 +235,7 @@ app.get('/api/:channel/:user', async (req, res) => {
 	const isPlain = plain?.toLowerCase() === 'true';
 	let error = null;
 
-	await sendStats(req, 'api', {
+	sendStats(req, 'api', {
 		channel: channel ?? '',
 		user: user ?? '',
 	});
@@ -286,7 +286,7 @@ const checkInstances = (obj) => {
 
 app.get('/instances', async (req, res) => {
 	const instances = Object.fromEntries(utils.instanceChannels);
-	await sendStats(req, 'instances');
+	sendStats(req, 'instances');
 
 	res.json({
 		instancesStats: checkInstances(instances),
@@ -297,7 +297,7 @@ app.get('/instances', async (req, res) => {
 app.get('/channels', async (req, res) => {
 	const instances = Object.fromEntries(utils.instanceChannels);
 	const channels = Array.from(utils.uniqueChannels);
-	await sendStats(req, 'channels');
+	sendStats(req, 'channels');
 
 	res.json({
 		instancesStats: checkInstances(instances),
@@ -323,7 +323,7 @@ const logsApi = async (req, res) => {
 	const user = extractValue(req.url, utils.userLinkRegex);
 	const { force } = req.query;
 
-	await sendStats(req, 'mirror', {
+	sendStats(req, 'mirror', {
 		channel: channel ?? '',
 		user: user ?? '',
 	});
@@ -386,9 +386,9 @@ app.get('/namehistory/:user', async (req, res) => {
 	const user = req.params.user;
 
 	if (user.startsWith('login:')) {
-		await sendStats(req, 'namehistory', { login: user.replace('login:', '') });
+		sendStats(req, 'namehistory', { login: user.replace('login:', '') });
 	} else {
-		await sendStats(req, 'namehistory', { id: user.replace('id:', '') });
+		sendStats(req, 'namehistory', { id: user.replace('id:', '') });
 	}
 
 	try {
@@ -410,7 +410,7 @@ app.get('/namehistory/:user', async (req, res) => {
 
 const getRecentMessages = async (req, res) => {
 	const channel = utils.formatUsername(req.params.channel);
-	await sendStats(req, 'recent-messages', {
+	sendStats(req, 'recent-messages', {
 		channel: channel ?? '',
 	});
 
