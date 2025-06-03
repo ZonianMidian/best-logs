@@ -98,6 +98,7 @@ async function sendStats(req, name, data = {}) {
 }
 
 app.get('/health', async (req, res) => {
+	const start = performance.now();
 	await sendStats(req, 'health');
 
 	const rawInstances = Object.fromEntries(utils.instanceChannels);
@@ -112,10 +113,16 @@ app.get('/health', async (req, res) => {
 		res.status(500);
 	}
 
+	const end = performance.now();
 	res.json({
+		elapsed: {
+			ms: Math.round((end - start) * 100) / 100,
+			s: Math.round((end - start) / 10) / 100,
+		},
 		instancesStats: checkInstances(rawInstances),
 		instances: instances,
 		channels: channels.length,
+		instance: config.instance || {},
 	});
 });
 
