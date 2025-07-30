@@ -356,7 +356,7 @@ const logsApi = async (req, res) => {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 				throwHttpErrors: false,
 				https: { rejectUnauthorized: false },
-				timeout: 10000,
+				timeout: 120000,
 				http2: true,
 			});
 
