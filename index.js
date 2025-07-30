@@ -352,12 +352,11 @@ const logsApi = async (req, res) => {
 				});
 			}
 
-			const { body, statusCode, headers } = await got(`${instanceLink}${requestUrl}`, {
+			const { body, statusCode, headers } = await utils.request(`${instanceLink}${requestUrl}`, {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
 				throwHttpErrors: false,
-				https: {
-					rejectUnauthorized: false,
-				},
+				https: { rejectUnauthorized: false },
+				timeout: 120000,
 				http2: true,
 			});
 

@@ -352,11 +352,9 @@ export class Utils {
 		let list = this.listData.get(listCacheKey);
 
 		if (!list || force) {
-			list = await got(`https://${instanceURL}/list?${channelPath}=${channelClean}`, {
+			list = await this.request(`https://${instanceURL}/list?${channelPath}=${channelClean}`, {
 				headers: { 'User-Agent': 'Best Logs by ZonianMidian' },
-				https: {
-					rejectUnauthorized: false,
-				},
+				https: { rejectUnauthorized: false },
 				timeout: 5000,
 				http2: true,
 			})
