@@ -34,7 +34,7 @@ export class Utils {
 	userIdRegex = /^id:(\d{1,})$/i;
 
 	instanceChannels = new Map();
-	uniqueChannels = new Set();
+	uniqueChannels = new Map();
 	statusCodes = new Map();
 	listData = new Map();
 	infoData = new Map();
@@ -154,10 +154,7 @@ export class Utils {
 	}
 
 	addChannel(channel) {
-		const set = this.uniqueChannels;
-		if (![...set].some((item) => item.userID === channel.userID)) {
-			this.uniqueChannels.add(channel);
-		}
+		this.uniqueChannels.set(channel.userID, channel);
 	}
 
 	async loopLoadInstanceChannels(noLogs) {

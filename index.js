@@ -102,7 +102,7 @@ app.get('/health', async (req, res) => {
 	sendStats(req, 'health');
 
 	const rawInstances = Object.fromEntries(utils.instanceChannels);
-	const channels = Array.from(utils.uniqueChannels);
+	const channels = Array.from(utils.uniqueChannels.values());
 
 	const instances = {};
 	for (const [key, arr] of Object.entries(rawInstances)) {
@@ -296,7 +296,7 @@ app.get('/instances', async (req, res) => {
 
 app.get('/channels', async (req, res) => {
 	const instances = Object.fromEntries(utils.instanceChannels);
-	const channels = Array.from(utils.uniqueChannels);
+	const channels = Array.from(utils.uniqueChannels.values());
 	sendStats(req, 'channels');
 
 	res.json({
