@@ -1,6 +1,6 @@
 {
 	"name": "best-logs",
-	"version": "2025.07.08",
+	"version": "2025.08.23",
 	"main": "index.js",
 	"type": "module",
 	"dependencies": {
