@@ -137,7 +137,7 @@ app.get('/rdr/:channel', async (req, res) => {
 	const { pretty } = req.query;
 
 	try {
-		const instance = await utils.getInstance(channel, null, false, pretty);
+		const instance = await utils.getInstance(channel, null, 'false', pretty);
 
 		if (instance.error) {
 			res.status(instance.status);
@@ -172,7 +172,7 @@ app.get('/rdr/:channel/:user', async (req, res) => {
 	}
 
 	try {
-		const instance = await utils.getInstance(channel, user, false, pretty);
+		const instance = await utils.getInstance(channel, user, 'false', pretty);
 
 		if (instance.error) {
 			res.status(instance.status);
@@ -206,7 +206,7 @@ app.get('/api/:channel', async (req, res) => {
 	const isPlain = plain?.toLowerCase() === 'true';
 
 	try {
-		const instances = await utils.getInstance(channel, null, false, pretty, error);
+		const instances = await utils.getInstance(channel, null, 'false', pretty, error);
 
 		if (isPlain) {
 			res.status(instances?.status || 400);
@@ -244,7 +244,7 @@ app.get('/api/:channel/:user', async (req, res) => {
 	if (!utils.userChanRegex.test(user)) error = `Invalid username or user ID: ${user}`;
 
 	try {
-		const instances = await utils.getInstance(channel, user, false, pretty, error);
+		const instances = await utils.getInstance(channel, user, 'false', pretty, error);
 
 		if (isPlain) {
 			res.status(instances?.status || 400);
@@ -334,7 +334,7 @@ const logsApi = async (req, res) => {
 	}
 
 	try {
-		const data = await utils.getInstance(channel, user, false);
+		const data = await utils.getInstance(channel, user, 'false');
 		if (data.error) {
 			res.status(data.status || 404);
 			res.contentType('text/plain');
