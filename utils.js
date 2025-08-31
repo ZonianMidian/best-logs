@@ -142,9 +142,11 @@ export class Utils {
 			}),
 		);
 
-		this.lastUpdated = Date.now();
-		this.statusCodes.clear();
-		this.listData.clear();
+		if (!onlyError) {
+			this.lastUpdated = Date.now();
+			this.statusCodes.clear();
+			this.listData.clear();
+		}
 
 		if (!noLogs) {
 			console.log(
