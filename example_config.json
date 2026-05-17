@@ -1,93 +1,28 @@
 {
 	"port": 2028,
-	"instance": {
-		"maintainer": "Anonymous",
-		"message": "Contact me for updates!",
-		"country": "Unknown",
-		"city": "Unknown",
-		"flag": "US",
-		"url": "logs.zonian.dev"
-	},
-	"justlogsInstances": {
-		"logs.spanix.team": {
-			"maintainer": "ZonianMidian"
-		},
-		"logs.nadeko.net": {
-			"maintainer": "Fijxu"
-		},
-		"logs.ivr.fi": {
-			"maintainer": "Leppunen"
-		},
-		"logs.2807.eu": {
-			"maintainer": "florian_2807"
-		},
-		"harambelogs.pl": {
-			"maintainer": "zneix",
-			"alternate": "logs.zneix.eu"
-		},
-		"vtlogs.moe": {
-			"maintainer": ""
-		},
-		"logs.magichack.xyz": {
-			"maintainer": "HackMagic"
-		},
-		"logs.susgee.dev": {
-			"maintainer": "LUCAS19961"
-		},
-		"logs.jimmyboy.dev": {
-			"maintainer": "devJimmyboy"
-		},
-		"logs.flake.sh": {
-			"maintainer": "notohh"
-		},
-		"logs.potat.app": {
-			"maintainer": "RyanPotat"
-		},
-		"logs.supa.codes": {
-			"maintainer": "Supelle"
-		},
-		"logs.mejkiz.com": {
-			"maintainer": "Mejkiz"
-		},
-		"logs.chaosly.de": {
-			"maintainer": "STIMMUNGSCHAOS__"
-		},
-		"logs.ananasxpress.dev": {
-			"maintainer": "ananasxpress_"
-		},
-		"logs.fais.al": {
-			"maintainer": "Faisal"
-		},
-		"logs.folhinhabot.com": {
-			"maintainer": "Leafyzito"
-		},
-		"logxx.dev": {
-			"maintainer": "seryxx"
-		},
-		"logs.mrchuw.com.br": {
-			"maintainer": "Mr_Chuw"
-		},
-		"logs.tlosdev.com": {
-			"maintainer": "xTlos"
-		},
-		"logs.nemeow.online": {
-			"maintainer": "sudo_lovemebaby"
-		},
-		"logs.twitchmetrics.xyz": {
-			"maintainer": "mechoriet"
-		}
-	},
-	"recentmessagesInstances": {
-		"recent-messages.zneix.eu": {
-			"maintainer": "zneix"
-		},
-		"recent-messages.robotty.de": {
-			"maintainer": "randers"
-		}
-	},
-	"umamiStats": {
-		"token": "Wkv7apbiL/jakyYB2mGmd9K5WxGMBh41k0Gu6qZMZFUjeDDJuSpxj6LrJ34zZrHyUmq2m22L8JUobVLgQRwt+XGpcc98XYv7BUUdwC1rXLPTTdCRKKWwrZmk1SONvlQ1tkviC5BV5/SDSyTa06lHkzTNRzJ5aN23eVEX2UARg1f6Ju7TpoM8ud6m1CB8rvvdsz/xm0j/eWbfzkVeEprG1Eeuz7KQxZb/SJQ37LLjYlBhas8rCIR1OCYw6aEuRJOYCf/QWDmsfnIGY9xaDERDBmALBkwJFV+Lf+ZbYZLp1lQOlrjt132akHoRs3ca95af67+jOiOdOycBR5mo7IbXp8y1DPGM4T/gYA==",
-		"id": "9615b20e-47da-47c9-a9c1-40c3b6f7b7f3",
-		"url": "https://cloud.umami.is"
-	}
+	"instances": [
+		"logs.spanix.team",
+		"logs.nadeko.net",
+		"logs.ivr.fi",
+		"logs.2807.eu",
+		"harambelogs.pl",
+		"vtlogs.moe",
+		"logs.magichack.xyz",
+		"logs.susgee.dev",
+		"logs.jimmyboy.dev",
+		"logs.flake.sh",
+		"logs.potat.app",
+		"logs.supa.codes",
+		"logs.mejkiz.com",
+		"logs.chaosly.de",
+		"logs.ananasxpress.dev",
+		"logs.fais.al",
+		"logs.folhinhabot.com",
+		"logxx.dev",
+		"logs.mrchuw.com.br",
+		"logs.tlosdev.com",
+		"logs.nemeow.online",
+		"logs.twitchmetrics.xyz"
+	],
+	"recentmessagesInstances": ["recent-messages.zneix.eu", "recent-messages.robotty.de"]
 }
