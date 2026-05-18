@@ -1,8 +1,8 @@
 node_modules
+dist
 config.json
 
-# locks
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
-bun.lockb
+# ai files
+.claude
+CLAUDE.md
+.rtk

@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"target": "ES2025",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": false,
+		"exactOptionalPropertyTypes": true,
+		"useUnknownInCatchVariables": true,
+		"sourceMap": false,
+		"esModuleInterop": false,
+		"ignoreDeprecations": "6.0",
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": false,
+		"lib": ["ES2025"]
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist"]
+}
