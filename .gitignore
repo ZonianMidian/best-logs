@@ -1,8 +1,12 @@
-node_modules
-config.json
+node_modules/
+dist/
+config.local.json
+public/*
+!public/static
 
-# locks
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
-bun.lockb
+# ai files
+.claude/
+CLAUDE.md
+.rtk/
+RTK.md
+AGENTS.md
