@@ -3,6 +3,8 @@ import path from 'node:path';
 
 interface StaticConfig {
 	instances: StaticInstance[];
+	baseUrl: string;
+	apiUrl: string;
 }
 
 interface StaticInstance {
@@ -11,11 +13,10 @@ interface StaticInstance {
 }
 
 const outputDirectory = 'public';
-const baseUrl = 'https://logs.zonian.dev';
-const assetBaseUrl =
-	'https://raw.githubusercontent.com/ZonianMidian/best-logs/d13b80728ab390acf65d8502882657b7d41ae33b/static';
 const config = await readConfig();
 const version = await readVersion();
+const { baseUrl } = config;
+const assetBaseUrl = `${baseUrl}/static`;
 
 function escapeHtml(value: string): string {
 	return value
@@ -42,8 +43,31 @@ async function readVersion(): Promise<string> {
 	return 'unknown';
 }
 
+function normalizeUrl(value: unknown, key: string): string {
+	if (typeof value !== 'string') {
+		throw new TypeError(`Invalid config.${key}: expected a string`);
+	}
+	if (value === '') return '';
+	if (!/^https?:\/\//i.test(value)) {
+		throw new TypeError(`Invalid config.${key}: expected a URL starting with http:// or https://`);
+	}
+	return value.replace(/\/+$/, '');
+}
+
 async function readConfig(): Promise<StaticConfig> {
-	const raw = await fs.readFile('config.json', 'utf8');
+	let raw: string | undefined;
+	for (const file of ['config.local.json', 'config.json']) {
+		try {
+			raw = await fs.readFile(file, 'utf8');
+			break;
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+		}
+	}
+	if (raw === undefined) {
+		throw new Error('No config file found (expected config.local.json or config.json)');
+	}
+
 	const parsedConfig = JSON.parse(raw) as unknown;
 
 	if (parsedConfig === null || typeof parsedConfig !== 'object' || !('instances' in parsedConfig)) {
@@ -55,6 +79,11 @@ async function readConfig(): Promise<StaticConfig> {
 		throw new TypeError('Invalid config.instances: expected an object');
 	}
 
+	const rawConfig = parsedConfig as { baseUrl?: unknown; apiUrl?: unknown };
+
+	const normalizedBaseUrl = normalizeUrl(rawConfig.baseUrl ?? '', 'baseUrl');
+	const normalizedApiUrl = normalizeUrl(rawConfig.apiUrl ?? '', 'apiUrl');
+
 	if (Array.isArray(rawInstances)) {
 		return {
 			instances: rawInstances.map((host) => {
@@ -63,6 +92,8 @@ async function readConfig(): Promise<StaticConfig> {
 				}
 				return { host, maintainer: '' };
 			}),
+			baseUrl: normalizedBaseUrl,
+			apiUrl: normalizedApiUrl,
 		};
 	}
 
@@ -79,7 +110,7 @@ async function readConfig(): Promise<StaticConfig> {
 		return { host, maintainer: maintainer ?? '' };
 	});
 
-	return { instances };
+	return { instances, baseUrl: normalizedBaseUrl, apiUrl: normalizedApiUrl };
 }
 
 function pageHead(title: string, description: string, image = `${assetBaseUrl}/DankG.png`): string {
@@ -471,7 +502,7 @@ function statusPage(): string {
 	}
 
 	async function loadStatus() {
-		const response = await fetch('${baseUrl}/instances');
+		const response = await fetch('${config.apiUrl}/instances');
 		const data = await response.json();
 		const instanceCounts = data.instanceCounts || {};
 		const lastElement = document.getElementById('last-update');

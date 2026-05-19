@@ -22,14 +22,15 @@
 		"typescript-eslint": "^8.59.3"
 	},
 	"scripts": {
-		"build": "tsdown",
+		"build": "tsx tools/generateStaticPages.ts && tsdown",
 		"generate:static": "tsx tools/generateStaticPages.ts",
 		"start": "node dist/index.mjs",
+		"buildstart": "npm run build && npm run start",
 		"dev": "tsx src/index.ts",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"lint": "eslint src/",
-		"lint:fix": "eslint src/ --fix",
+		"lint": "eslint src/ tools/",
+		"lint:fix": "eslint src/ tools/ --fix",
 		"typecheck": "tsc --noEmit",
 		"fix": "npm run format && npm run lint:fix && npm run typecheck"
 	},

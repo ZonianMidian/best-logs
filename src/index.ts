@@ -46,6 +46,10 @@ app.use(recentMessagesRouter);
 app.use(nameHistoryRouter);
 app.use(instancesRouter);
 
+if (config.serveStatic) {
+	app.use(express.static('public'));
+}
+
 app.use(function (_req: Request, _res: Response, next: NextFunction) {
 	next(new AppError('Not Found', 404, 'not_found'));
 });

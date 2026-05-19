@@ -1,5 +1,8 @@
 {
 	"port": 2028,
+	"serveStatic": true,
+	"baseUrl": "https://logs.zonian.dev",
+	"apiUrl": "",
 	"instances": {
 		"logs.spanix.team": {
 			"maintainer": "ZonianMidian"
