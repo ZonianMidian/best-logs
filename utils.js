@@ -224,7 +224,10 @@ export class Utils {
 		}
 
 		if (!error) {
-			const results = await Promise.allSettled(instances.map((i) => this.getLogs(i, user, channel, force, pretty, banned)));
+			const aliveInstances = instances.filter(
+				(url) => !(Array.isArray(this.instanceChannels.get(url)) && this.instanceChannels.get(url).length === 0),
+			);
+			const results = await Promise.allSettled(aliveInstances.map((i) => this.getLogs(i, user, channel, force, pretty, banned)));
 			const resolvedInstances = results.filter(({ status }) => status === 'fulfilled').map(({ value }) => value);
 
 			for (const instance of resolvedInstances) {
@@ -640,8 +643,12 @@ export class Utils {
 
 		let nameHistory = [];
 
+		const nameHistoryInstances = Object.keys(this.config.justlogsInstances).filter(
+			(url) => !(Array.isArray(this.instanceChannels.get(url)) && this.instanceChannels.get(url).length === 0),
+		);
+
 		await Promise.allSettled(
-			Object.keys(this.config.justlogsInstances).map(async (url) => {
+			nameHistoryInstances.map(async (url) => {
 				try {
 					const instanceURL = this.config.justlogsInstances[url]?.alternate ?? url;
 					const historyData = await this.request(`https://${instanceURL}/namehistory/${user}`, {
